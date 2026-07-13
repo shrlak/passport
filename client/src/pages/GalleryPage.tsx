@@ -53,6 +53,7 @@ export default function GalleryPage() {
           <div key={key}>
             <StampSVG
               subject={{ id: `gallery-${key}`, artKey: key, ...SAMPLE_NAMES[key] }}
+              illustrated
               className="w-full drop-shadow-md"
             />
             <p className="text-xs text-ink-soft text-center mt-1">{key}</p>
@@ -64,7 +65,7 @@ export default function GalleryPage() {
         {MOTIF_SAMPLES.map((s, i) => (
           <div key={s.name}>
             {/* seed chosen so sample i lands on motif i */}
-            <StampSVG subject={{ id: motifSeed(i), ...s }} className="w-full drop-shadow-md" />
+            <StampSVG subject={{ id: motifSeed(i), ...s }} illustrated className="w-full drop-shadow-md" />
             <p className="text-xs text-ink-soft text-center mt-1">motif {i}</p>
           </div>
         ))}

@@ -7,7 +7,8 @@ import { placesRouter } from './routes/places.js';
 
 const app = express();
 app.disable('x-powered-by');
-app.use(express.json());
+// generous limit: stamp photos arrive as base64 data URLs (client downscales first)
+app.use(express.json({ limit: '8mb' }));
 
 app.use('/api/auth', authRouter);
 app.use('/api/places', placesRouter);

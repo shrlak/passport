@@ -63,6 +63,7 @@ export default function ExplorePage() {
                 <div className="w-12 shrink-0">
                   <StampSVG
                     subject={place}
+                    photoUrl={place.stamp?.photoUrl}
                     className={place.stamp ? 'w-full' : 'w-full opacity-60 grayscale'}
                   />
                 </div>

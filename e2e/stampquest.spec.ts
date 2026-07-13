@@ -8,6 +8,10 @@ const shot = (name: string) => fileURLToPath(new URL(`screenshots/${name}.png`, 
 const email = `e2e-${Date.now()}@example.com`;
 const password = 'wanderlust1';
 
+// 1×1 PNG — enough for the canvas-downscale → upload pipeline.
+const TEST_PNG_BASE64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
 test.describe.configure({ mode: 'serial' });
 
 test('register, collect at the Eiffel Tower, add a custom place', async ({ page }) => {
@@ -44,9 +48,19 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   );
   await page.screenshot({ path: shot('04-collected') });
 
-  // persistence: survives a full reload (server-side stamp, not client state)
+  // the stamp starts blank — the traveler's own photo becomes the stamp art
+  await expect(page.getByTestId('stamp-photo')).toHaveCount(0);
+  await page.getByTestId('photo-upload-input').setInputFiles({
+    name: 'eiffel.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(TEST_PNG_BASE64, 'base64'),
+  });
+  await expect(page.getByTestId('stamp-photo')).toBeVisible();
+
+  // persistence: survives a full reload (server-side stamp + photo, not client state)
   await page.reload();
   await expect(page.getByTestId('collected-line')).toBeVisible();
+  await expect(page.getByTestId('stamp-photo')).toBeVisible();
 
   // passport reflects the collection
   await page.getByRole('link', { name: 'Passport' }).click();
@@ -104,6 +118,50 @@ test('proximity is enforced server-side, not just in the UI', async ({ page, con
   await expect(page.getByTestId('collect-button')).toBeDisabled();
   await expect(page.getByTestId('too-far-line')).toContainText('Get within 500 m');
   await page.screenshot({ path: shot('07-too-far') });
+});
+
+test('a photo with matching EXIF location collects a stamp remotely', async ({ page }) => {
+  // still signed in as the suite account, geolocation mocked to Paris
+  await page.goto('/auth');
+  await page.getByPlaceholder('Email').fill(email);
+  await page.getByPlaceholder('Password (8+ characters)').fill(password);
+  await page.getByTestId('auth-submit').click();
+  await expect(page.getByTestId('passport-grid')).toBeVisible();
+
+  const png = `data:image/png;base64,${TEST_PNG_BASE64}`;
+  const result = await page.evaluate(async (photo) => {
+    const { places } = await (await fetch('/api/places')).json();
+    const taj = places.find((p: { artKey: string }) => p.artKey === 'tajmahal');
+    const petra = places.find((p: { artKey: string }) => p.artKey === 'petra');
+    const post = async (id: string, body: Record<string, unknown>) => {
+      const res = await fetch(`/api/places/${id}/collect-photo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      return { status: res.status, body: await res.json() };
+    };
+    return {
+      // photo "taken at" the Taj Mahal → granted despite being in Paris
+      granted: await post(taj.id, { photo, photoLat: 27.1745, photoLng: 78.0418 }),
+      // photo taken ~200 km away → rejected
+      far: await post(petra.id, { photo, photoLat: 32.0, photoLng: 35.5 }),
+      // no EXIF location and no landmark check configured → rejected
+      none: await post(petra.id, { photo }),
+    };
+  }, png);
+
+  expect(result.granted.status).toBe(201);
+  expect(result.granted.body.verifiedBy).toBe('photo-gps');
+  expect(result.far.status).toBe(403);
+  expect(result.far.body.error).toBe('PHOTO_TOO_FAR');
+  expect(result.none.status).toBe(403);
+  expect(result.none.body.error).toBe('PHOTO_NO_LOCATION');
+
+  // the granted stamp appears collected, with the photo as its art
+  await page.goto(`/place/${result.granted.body.stamp.placeId}`);
+  await expect(page.getByTestId('collected-line')).toBeVisible();
+  await expect(page.getByTestId('stamp-photo')).toBeVisible();
 });
 
 test('API rejects unauthenticated requests', async ({ request }) => {

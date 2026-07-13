@@ -19,6 +19,7 @@ export function StampCard({ place }: { place: Place }) {
       <div className="relative" style={{ transform: `rotate(${rotation}deg)` }}>
         <StampSVG
           subject={place}
+          photoUrl={place.stamp?.photoUrl}
           className={`w-full ${
             collected
               ? 'drop-shadow-[0_3px_6px_rgba(47,42,36,0.25)]'

@@ -2,7 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { Router } from 'express';
 import { db, type PlaceRow, type StampRow } from '../db.js';
 import { currentUser, requireAuth } from '../auth.js';
-import { COLLECT_RADIUS_M, haversineMeters } from '../geo.js';
+import { COLLECT_RADIUS_M, PHOTO_RADIUS_M, haversineMeters } from '../geo.js';
+import { LANDMARK_CHECK_ENABLED, verifyLandmarkPhoto } from '../landmark.js';
 
 export const placesRouter = Router();
 placesRouter.use(requireAuth);
@@ -13,6 +14,9 @@ function serializeStamp(stamp: StampRow) {
     placeId: stamp.place_id,
     collectedAt: stamp.collected_at,
     distanceM: stamp.distance_m,
+    photoUrl: stamp.photo_updated_at
+      ? `/api/places/${stamp.place_id}/photo?v=${encodeURIComponent(stamp.photo_updated_at)}`
+      : null,
   };
 }
 
@@ -46,6 +50,41 @@ function stampFor(placeId: string, userId: number): StampRow | null {
     .prepare('SELECT * FROM stamps WHERE place_id = ? AND user_id = ?')
     .get(placeId, userId) as StampRow | undefined;
   return row ?? null;
+}
+
+const PHOTO_DATA_URL = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/;
+
+function decodePhoto(photo: unknown): { buffer: Buffer; mime: string } | null {
+  const match = typeof photo === 'string' && photo.match(PHOTO_DATA_URL);
+  if (!match) return null;
+  const buffer = Buffer.from(match[2], 'base64');
+  if (buffer.length > 4 * 1024 * 1024) return null;
+  return { buffer, mime: `image/${match[1]}` };
+}
+
+function insertStamp(
+  userId: number,
+  placeId: string,
+  coords: { lat: number; lng: number } | null,
+  distanceM: number | null,
+  photo: { buffer: Buffer; mime: string } | null,
+): StampRow {
+  const id = randomUUID();
+  db.prepare(
+    `INSERT INTO stamps (id, user_id, place_id, collected_lat, collected_lng, distance_m,
+                         photo, photo_mime, photo_updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ${photo ? "datetime('now')" : 'NULL'})`,
+  ).run(
+    id,
+    userId,
+    placeId,
+    coords?.lat ?? null,
+    coords?.lng ?? null,
+    distanceM,
+    photo?.buffer ?? null,
+    photo?.mime ?? null,
+  );
+  return db.prepare('SELECT * FROM stamps WHERE id = ?').get(id) as StampRow;
 }
 
 placesRouter.get('/', (_req, res) => {
@@ -115,6 +154,51 @@ placesRouter.delete('/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// A collected stamp starts blank; the user's own photo becomes the stamp art.
+placesRouter.put('/:id/photo', (req, res) => {
+  const user = currentUser(res);
+  const place = visiblePlace(req.params.id, user.id);
+  if (!place) {
+    res.status(404).json({ error: 'PLACE_NOT_FOUND' });
+    return;
+  }
+  const stamp = stampFor(place.id, user.id);
+  if (!stamp) {
+    res.status(409).json({ error: 'NOT_COLLECTED' });
+    return;
+  }
+  const { photo } = (req.body ?? {}) as Record<string, unknown>;
+  const match =
+    typeof photo === 'string' && photo.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) {
+    res.status(400).json({ error: 'INVALID_PHOTO' });
+    return;
+  }
+  const buffer = Buffer.from(match[2], 'base64');
+  if (buffer.length > 4 * 1024 * 1024) {
+    res.status(413).json({ error: 'PHOTO_TOO_LARGE' });
+    return;
+  }
+  db.prepare(
+    `UPDATE stamps SET photo = ?, photo_mime = ?, photo_updated_at = datetime('now') WHERE id = ?`,
+  ).run(buffer, `image/${match[1]}`, stamp.id);
+  const updated = db.prepare('SELECT * FROM stamps WHERE id = ?').get(stamp.id) as StampRow;
+  res.json({ stamp: serializeStamp(updated) });
+});
+
+placesRouter.get('/:id/photo', (req, res) => {
+  const user = currentUser(res);
+  const stamp = stampFor(req.params.id, user.id);
+  if (!stamp || !stamp.photo || !stamp.photo_mime) {
+    res.status(404).json({ error: 'PHOTO_NOT_FOUND' });
+    return;
+  }
+  res.setHeader('Content-Type', stamp.photo_mime);
+  // URLs carry a ?v= cache-buster from photo_updated_at, so long caching is safe.
+  res.setHeader('Cache-Control', 'private, max-age=31536000, immutable');
+  res.send(stamp.photo);
+});
+
 placesRouter.post('/:id/collect', (req, res) => {
   const user = currentUser(res);
   const place = visiblePlace(req.params.id, user.id);
@@ -141,11 +225,76 @@ placesRouter.post('/:id/collect', (req, res) => {
     res.status(409).json({ error: 'ALREADY_COLLECTED' });
     return;
   }
-  const id = randomUUID();
-  db.prepare(
-    `INSERT INTO stamps (id, user_id, place_id, collected_lat, collected_lng, distance_m)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-  ).run(id, user.id, place.id, lat, lng, distanceM);
-  const stamp = db.prepare('SELECT * FROM stamps WHERE id = ?').get(id) as StampRow;
+  const stamp = insertStamp(user.id, place.id, { lat, lng }, distanceM, null);
   res.status(201).json({ stamp: serializeStamp(stamp) });
+});
+
+// Remote collection with photo evidence. Two verification paths:
+// 1. The photo's EXIF GPS (extracted client-side, same trust level as browser
+//    geolocation) is within PHOTO_RADIUS_M of the place.
+// 2. Otherwise, if ANTHROPIC_API_KEY is configured, a vision check confirms
+//    the photo actually shows this place's landmark.
+// Either way the photo becomes the stamp art.
+placesRouter.post('/:id/collect-photo', async (req, res) => {
+  const user = currentUser(res);
+  const place = visiblePlace(req.params.id, user.id);
+  if (!place) {
+    res.status(404).json({ error: 'PLACE_NOT_FOUND' });
+    return;
+  }
+  if (stampFor(place.id, user.id)) {
+    res.status(409).json({ error: 'ALREADY_COLLECTED' });
+    return;
+  }
+  const { photo, photoLat, photoLng } = (req.body ?? {}) as Record<string, unknown>;
+  const decoded = decodePhoto(photo);
+  if (!decoded) {
+    res.status(400).json({ error: 'INVALID_PHOTO' });
+    return;
+  }
+
+  const gps =
+    typeof photoLat === 'number' && typeof photoLng === 'number' &&
+    Number.isFinite(photoLat) && Number.isFinite(photoLng) &&
+    Math.abs(photoLat) <= 90 && Math.abs(photoLng) <= 180
+      ? { lat: photoLat, lng: photoLng }
+      : null;
+
+  let gpsDistanceM: number | null = null;
+  if (gps) {
+    gpsDistanceM = haversineMeters(gps.lat, gps.lng, place.lat, place.lng);
+    if (gpsDistanceM <= PHOTO_RADIUS_M) {
+      const stamp = insertStamp(user.id, place.id, gps, gpsDistanceM, decoded);
+      res.status(201).json({ stamp: serializeStamp(stamp), verifiedBy: 'photo-gps' });
+      return;
+    }
+  }
+
+  if (LANDMARK_CHECK_ENABLED) {
+    let verdict;
+    try {
+      verdict = await verifyLandmarkPhoto(place.name, place.country, photo as string);
+    } catch {
+      res.status(503).json({ error: 'VERIFICATION_UNAVAILABLE' });
+      return;
+    }
+    if (verdict.match && verdict.confidence !== 'low') {
+      const stamp = insertStamp(user.id, place.id, null, null, decoded);
+      res.status(201).json({ stamp: serializeStamp(stamp), verifiedBy: 'photo-landmark' });
+      return;
+    }
+    if (!gps) {
+      res.status(403).json({ error: 'PHOTO_NOT_RECOGNIZED', reason: verdict.reason });
+      return;
+    }
+  }
+
+  if (gpsDistanceM !== null) {
+    res.status(403).json({ error: 'PHOTO_TOO_FAR', distanceM: Math.round(gpsDistanceM) });
+  } else {
+    res.status(403).json({
+      error: 'PHOTO_NO_LOCATION',
+      landmarkCheckAvailable: LANDMARK_CHECK_ENABLED,
+    });
+  }
 });

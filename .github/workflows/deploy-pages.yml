@@ -7,17 +7,19 @@ on:
       - main
   workflow_dispatch:
 
+# Publishes the built client to the gh-pages branch. GitHub enables Pages
+# automatically for a gh-pages branch, so no repo-settings step is needed.
+# (The artifact-based flow via actions/deploy-pages needs Pages pre-enabled,
+# which the workflow token isn't allowed to do itself.)
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,18 +32,8 @@ jobs:
         run: VITE_BACKEND=local VITE_BASE=/passport/ npm run build -w client
       - name: SPA fallback for client-side routes
         run: cp client/dist/index.html client/dist/404.html
-      - uses: actions/configure-pages@v5
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: client/dist
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: client/dist

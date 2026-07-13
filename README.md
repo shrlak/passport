@@ -56,7 +56,7 @@ Every push to the default branch runs `.github/workflows/deploy-pages.yml`, whic
 
 GitHub Pages can't run the Node API, so this build swaps in a browser backend (`VITE_BACKEND=local`): you're auto-signed in as a local traveler, and stamps + custom places are stored in `localStorage` on the device (no accounts, no cross-device sync; the 500 m check runs client-side). Everything else is identical — and since Pages serves over HTTPS, GPS collecting and PWA install work great on phones.
 
-The workflow tries to enable Pages automatically on first deploy. If that run fails with a Pages/permissions error, enable it once by hand — repo **Settings → Pages → Source: GitHub Actions** — then re-run the workflow.
+The workflow publishes the build to a `gh-pages` branch, which GitHub picks up automatically. If the site doesn't appear after the first successful run, enable it once by hand — repo **Settings → Pages → Deploy from a branch → `gh-pages` / root** — later deploys are automatic.
 
 To try the static build locally: `VITE_BACKEND=local npm run build -w client && npm run preview -w client`.
 

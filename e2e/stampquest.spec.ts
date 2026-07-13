@@ -48,9 +48,13 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   );
   await page.screenshot({ path: shot('04-collected') });
 
-  // the stamp starts blank — the traveler's own photo becomes the stamp art
+  // the stamp starts blank — tapping it is the primary way to add a photo
   await expect(page.getByTestId('stamp-photo')).toHaveCount(0);
-  await page.getByTestId('photo-upload-input').setInputFiles({
+  await expect(page.getByTestId('stamp-photo-tap-target')).toBeVisible();
+  const uploadChooser = page.waitForEvent('filechooser');
+  await page.getByTestId('stamp-photo-tap-target').click();
+  const chooser = await uploadChooser;
+  await chooser.setFiles({
     name: 'eiffel.png',
     mimeType: 'image/png',
     buffer: Buffer.from(TEST_PNG_BASE64, 'base64'),

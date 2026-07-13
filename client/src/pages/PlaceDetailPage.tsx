@@ -149,16 +149,34 @@ export default function PlaceDetailPage() {
         ‹
       </button>
 
-      <div className={`mx-auto w-3/4 max-w-72 ${justCollected ? 'animate-stamp-down' : ''}`}>
-        <StampSVG
-          subject={place}
-          photoUrl={place.stamp?.photoUrl}
-          className={`w-full ${
-            collected
-              ? 'drop-shadow-[0_4px_10px_rgba(47,42,36,0.3)]'
-              : 'opacity-60 grayscale contrast-[0.85]'
-          }`}
-        />
+      <div className={`relative mx-auto w-3/4 max-w-72 ${justCollected ? 'animate-stamp-down' : ''}`}>
+        {collected ? (
+          <button
+            type="button"
+            onClick={() => uploadInput.current?.click()}
+            disabled={savingPhoto}
+            className="block w-full text-left transition-transform active:scale-[0.98] disabled:active:scale-100"
+            aria-label={place.stamp!.photoUrl ? 'Replace stamp photo' : 'Add a photo for this stamp'}
+            data-testid="stamp-photo-tap-target"
+          >
+            <StampSVG
+              subject={place}
+              photoUrl={place.stamp?.photoUrl}
+              className="w-full drop-shadow-[0_4px_10px_rgba(47,42,36,0.3)]"
+            />
+            <span className="pointer-events-none absolute right-2 bottom-2 flex h-8 w-8 items-center justify-center rounded-full bg-ink/75 shadow">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-paper-light" aria-hidden>
+                <path d="M4 7h3.2L9 4.5h6L16.8 7H20a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Zm8 2.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Zm0 1.8a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z" />
+              </svg>
+            </span>
+          </button>
+        ) : (
+          <StampSVG
+            subject={place}
+            photoUrl={place.stamp?.photoUrl}
+            className="w-full opacity-60 grayscale contrast-[0.85]"
+          />
+        )}
       </div>
 
       <h1 className="mt-5 text-center font-display text-3xl">{place.name}</h1>
@@ -181,7 +199,7 @@ export default function PlaceDetailPage() {
             </p>
             {!place.stamp!.photoUrl && (
               <p className="max-w-72 text-center text-sm text-ink-soft">
-                Make it yours — add your own picture of this place as the stamp.
+                Make it yours — tap the stamp above to take or upload a photo of this place.
               </p>
             )}
             <div className="flex gap-2">

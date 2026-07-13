@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS stamps (
   collected_lat REAL,
   collected_lng REAL,
   distance_m REAL,
+  photo BLOB,
+  photo_mime TEXT,
+  photo_updated_at TEXT,
   UNIQUE (user_id, place_id)
 );
 CREATE INDEX IF NOT EXISTS idx_stamps_user ON stamps(user_id);

@@ -48,6 +48,7 @@ export default function AuthPage() {
       <div className="mx-auto mb-4 w-28 rotate-[-3deg]">
         <StampSVG
           subject={{ id: 'welcome', name: 'StampQuest', country: 'Your travel passport', artKey: 'eiffel' }}
+          illustrated
           className="w-full drop-shadow-[0_3px_6px_rgba(47,42,36,0.25)]"
         />
       </div>

@@ -1,0 +1,39 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - claude/stampquest-mobile-app-txqelu
+      - main
+  workflow_dispatch:
+
+# Publishes the built client to the gh-pages branch. GitHub enables Pages
+# automatically for a gh-pages branch, so no repo-settings step is needed.
+# (The artifact-based flow via actions/deploy-pages needs Pages pre-enabled,
+# which the workflow token isn't allowed to do itself.)
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build static demo (localStorage backend)
+        run: VITE_BACKEND=local VITE_BASE=/passport/ npm run build -w client
+      - name: SPA fallback for client-side routes
+        run: cp client/dist/index.html client/dist/404.html
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: client/dist

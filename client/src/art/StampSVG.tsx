@@ -42,12 +42,21 @@ function nameFontSize(name: string): number {
   return 9.5;
 }
 
-/** Deterministic vintage postage stamp. Same subject ⇒ same art, everywhere. */
+/**
+ * Deterministic vintage postage stamp. The art panel starts blank; the
+ * user's own photo of the place becomes the stamp art (photoUrl). The
+ * procedural landmark scenes remain available behind `illustrated` for
+ * the /gallery QA sheet.
+ */
 export function StampSVG({
   subject,
+  photoUrl,
+  illustrated = false,
   className,
 }: {
   subject: StampSubject;
+  photoUrl?: string | null;
+  illustrated?: boolean;
   className?: string;
 }) {
   const uid = useId();
@@ -56,9 +65,11 @@ export function StampSVG({
 
   const art = (subject.artKey && LANDMARKS[subject.artKey]) || MOTIFS[hash % MOTIFS.length];
   const palette =
-    art.paletteIndex !== undefined ? PALETTES[art.paletteIndex] : PALETTES[rnd(PALETTES.length)];
+    illustrated && art.paletteIndex !== undefined
+      ? PALETTES[art.paletteIndex]
+      : PALETTES[rnd(PALETTES.length)];
 
-  // Hash-derived scene parameters.
+  // Hash-derived scene parameters (used by the illustrated variant).
   const sunCx = P.x + P.w * (0.25 + rnd(51) / 100);
   const sunCy = P.y + P.h * 0.22 + rnd(18);
   const sunR = 13 + rnd(8);
@@ -101,19 +112,69 @@ export function StampSVG({
         {/* stamp paper */}
         <rect width={W} height={H} fill={PAPER} />
 
-        {/* scene */}
+        {/* art panel */}
         <g clipPath={`url(#${clipId})`}>
-          <rect x={P.x} y={P.y} width={P.w} height={P.h} fill={`url(#${skyId})`} />
-          <circle cx={sunCx} cy={sunCy} r={sunR + 14} fill="none" stroke={palette.sun} strokeWidth="1.5" opacity="0.25" />
-          <circle cx={sunCx} cy={sunCy} r={sunR + 7} fill="none" stroke={palette.sun} strokeWidth="1.5" opacity="0.4" />
-          <circle cx={sunCx} cy={sunCy} r={sunR} fill={palette.sun} />
-          <path d={hill(hillPeak1, groundY - 34)} fill={palette.mid} opacity="0.35" />
-          <path d={hill(hillPeak2, groundY - 20)} fill={palette.mid} opacity="0.55" />
-          <g transform={`translate(35 ${LANDMARK_BASELINE - 130}) scale(1.3)`}>
-            <path d={art.path} fill={palette.ink} fillRule="evenodd" />
-            {art.accent && <path d={art.accent} fill={PAPER} fillRule="evenodd" opacity="0.92" />}
-          </g>
-          <rect x={P.x} y={groundY} width={P.w} height={P.y + P.h - groundY} fill={palette.ink} />
+          {photoUrl ? (
+            <>
+              <image
+                href={photoUrl}
+                x={P.x}
+                y={P.y}
+                width={P.w}
+                height={P.h}
+                preserveAspectRatio="xMidYMid slice"
+                data-testid="stamp-photo"
+              />
+              {/* warm tint so photos sit comfortably in the album */}
+              <rect
+                x={P.x}
+                y={P.y}
+                width={P.w}
+                height={P.h}
+                fill={palette.skyBottom}
+                opacity="0.14"
+                style={{ mixBlendMode: 'multiply' }}
+              />
+            </>
+          ) : illustrated ? (
+            <>
+              <rect x={P.x} y={P.y} width={P.w} height={P.h} fill={`url(#${skyId})`} />
+              <circle cx={sunCx} cy={sunCy} r={sunR + 14} fill="none" stroke={palette.sun} strokeWidth="1.5" opacity="0.25" />
+              <circle cx={sunCx} cy={sunCy} r={sunR + 7} fill="none" stroke={palette.sun} strokeWidth="1.5" opacity="0.4" />
+              <circle cx={sunCx} cy={sunCy} r={sunR} fill={palette.sun} />
+              <path d={hill(hillPeak1, groundY - 34)} fill={palette.mid} opacity="0.35" />
+              <path d={hill(hillPeak2, groundY - 20)} fill={palette.mid} opacity="0.55" />
+              <g transform={`translate(35 ${LANDMARK_BASELINE - 130}) scale(1.3)`}>
+                <path d={art.path} fill={palette.ink} fillRule="evenodd" />
+                {art.accent && <path d={art.accent} fill={PAPER} fillRule="evenodd" opacity="0.92" />}
+              </g>
+              <rect x={P.x} y={groundY} width={P.w} height={P.y + P.h - groundY} fill={palette.ink} />
+            </>
+          ) : (
+            <>
+              {/* blank slot, waiting for the traveler's own photo */}
+              <rect x={P.x} y={P.y} width={P.w} height={P.h} fill={palette.skyBottom} opacity="0.22" />
+              <rect
+                x={P.x + 10}
+                y={P.y + 10}
+                width={P.w - 20}
+                height={P.h - 20}
+                fill="none"
+                stroke={palette.ink}
+                strokeWidth="1"
+                strokeDasharray="4 5"
+                opacity="0.35"
+              />
+              <g opacity="0.3" transform={`translate(${W / 2 - 14} ${P.y + P.h / 2 - 12})`}>
+                {/* camera pictogram */}
+                <path
+                  d="M4 7 L9 7 L11.5 3.5 L16.5 3.5 L19 7 L24 7 A3 3 0 0 1 27 10 L27 21 A3 3 0 0 1 24 24 L4 24 A3 3 0 0 1 1 21 L1 10 A3 3 0 0 1 4 7 Z M14 10.2 A5.3 5.3 0 1 0 14 20.8 A5.3 5.3 0 1 0 14 10.2 Z M14 12.6 A2.9 2.9 0 1 1 14 18.4 A2.9 2.9 0 1 1 14 12.6 Z"
+                  fill={palette.ink}
+                  fillRule="evenodd"
+                />
+              </g>
+            </>
+          )}
         </g>
 
         {/* frame */}

@@ -24,6 +24,16 @@ db.pragma('foreign_keys = ON');
 
 db.exec(SCHEMA);
 
+// Additive migration for databases created before photo stamps existed.
+const stampCols = (db.prepare('PRAGMA table_info(stamps)').all() as { name: string }[]).map(
+  (c) => c.name,
+);
+if (!stampCols.includes('photo')) {
+  db.exec(`ALTER TABLE stamps ADD COLUMN photo BLOB;
+    ALTER TABLE stamps ADD COLUMN photo_mime TEXT;
+    ALTER TABLE stamps ADD COLUMN photo_updated_at TEXT;`);
+}
+
 const placeCount = db
   .prepare('SELECT count(*) AS n FROM places WHERE is_curated = 1')
   .get() as { n: number };
@@ -71,4 +81,7 @@ export interface StampRow {
   collected_lat: number | null;
   collected_lng: number | null;
   distance_m: number | null;
+  photo: Buffer | null;
+  photo_mime: string | null;
+  photo_updated_at: string | null;
 }

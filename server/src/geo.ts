@@ -3,6 +3,11 @@
 // check here is what actually protects the data.
 export const COLLECT_RADIUS_M = 500;
 
+// Radius for collecting via a photo's EXIF location. More generous than the
+// live-GPS radius: landmark photos are usually taken from a viewpoint some
+// distance away (Trocadéro, Sugarloaf, the rim of the caldera).
+export const PHOTO_RADIUS_M = 5000;
+
 const EARTH_RADIUS_M = 6371000;
 
 export function haversineMeters(

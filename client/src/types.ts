@@ -15,6 +15,8 @@ export interface Stamp {
   placeId: string;
   collectedAt: string;
   distanceM: number | null;
+  /** The user's own photo of the place — the stamp art. Null until they add one. */
+  photoUrl: string | null;
 }
 
 export interface Place {

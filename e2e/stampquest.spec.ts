@@ -1,0 +1,132 @@
+import { expect, test } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
+
+const NYC = { latitude: 40.7128, longitude: -74.006 };
+const shot = (name: string) => fileURLToPath(new URL(`screenshots/${name}.png`, import.meta.url));
+
+// One account shared across the serial suite.
+const email = `e2e-${Date.now()}@example.com`;
+const password = 'wanderlust1';
+
+test.describe.configure({ mode: 'serial' });
+
+test('register, collect at the Eiffel Tower, add a custom place', async ({ page }) => {
+  await page.goto('/auth');
+  await page.screenshot({ path: shot('01-auth') });
+
+  // register (auto-login, no email confirmation)
+  await page.getByText('New here? Create an account').click();
+  await page.getByPlaceholder('Display name').fill('Spencer');
+  await page.getByPlaceholder('Email').fill(email);
+  await page.getByPlaceholder('Password (8+ characters)').fill(password);
+  await page.getByTestId('auth-submit').click();
+
+  // passport: 24 curated stamps, all locked
+  await expect(page.getByTestId('passport-grid')).toBeVisible();
+  await expect(page.getByTestId('stamp-card')).toHaveCount(24);
+  await expect(page.locator('[data-testid="stamp-card"][data-collected="true"]')).toHaveCount(0);
+  await expect(page.getByTestId('stats-strip')).toContainText('0 / 24');
+  await page.screenshot({ path: shot('02-passport-locked'), fullPage: true });
+
+  // explore: location sorts Eiffel Tower first and in range
+  await page.getByRole('link', { name: 'Explore' }).click();
+  await page.getByTestId('enable-location').click();
+  const firstRow = page.locator('[data-testid="explore-list"] a').first();
+  await expect(firstRow).toContainText('Eiffel Tower');
+  await expect(firstRow).toContainText('In range');
+  await page.screenshot({ path: shot('03-explore') });
+
+  // collect
+  await firstRow.click();
+  await page.getByTestId('collect-button').click();
+  await expect(page.getByTestId('collected-line')).toContainText(
+    'you added the Eiffel Tower stamp to your collection',
+  );
+  await page.screenshot({ path: shot('04-collected') });
+
+  // persistence: survives a full reload (server-side stamp, not client state)
+  await page.reload();
+  await expect(page.getByTestId('collected-line')).toBeVisible();
+
+  // passport reflects the collection
+  await page.getByRole('link', { name: 'Passport' }).click();
+  await expect(page.locator('[data-testid="stamp-card"][data-collected="true"]')).toHaveCount(1);
+  await expect(page.getByTestId('stats-strip')).toContainText('1 / 24');
+  await page.screenshot({ path: shot('05-passport-collected'), fullPage: true });
+
+  // custom place at current location, then collect it
+  await page.getByRole('link', { name: 'Add' }).click();
+  await page.getByTestId('place-name').fill('Café de Flore');
+  await page.getByTestId('place-country').fill('France');
+  await page.getByTestId('use-my-location').click();
+  await expect(page.getByTestId('use-my-location')).toContainText('Using your location');
+  await page.getByTestId('save-place').click();
+  await page.getByTestId('collect-button').click();
+  await expect(page.getByTestId('collected-line')).toContainText('Café de Flore');
+
+  // stats: 2 stamps, 1 country (both France); custom grid appears
+  await page.getByRole('link', { name: 'Passport' }).click();
+  await expect(page.getByTestId('my-places-grid')).toBeVisible();
+  await expect(page.getByTestId('stats-strip')).toContainText('2 / 25');
+  await page.getByRole('link', { name: 'Profile' }).click();
+  await expect(page.getByText('stamps')).toBeVisible();
+  await page.screenshot({ path: shot('06-profile') });
+});
+
+test('proximity is enforced server-side, not just in the UI', async ({ page, context }) => {
+  // sign in fresh (also exercises the login flow)
+  await page.goto('/auth');
+  await page.getByPlaceholder('Email').fill(email);
+  await page.getByPlaceholder('Password (8+ characters)').fill(password);
+  await page.getByTestId('auth-submit').click();
+  await expect(page.getByTestId('passport-grid')).toBeVisible();
+
+  // bypass the UI: POST NYC coordinates for the Colosseum directly
+  const result = await page.evaluate(async (coords) => {
+    const { places } = await (await fetch('/api/places')).json();
+    const colosseum = places.find((p: { artKey: string }) => p.artKey === 'colosseum');
+    const res = await fetch(`/api/places/${colosseum.id}/collect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(coords),
+    });
+    return { status: res.status, body: await res.json(), placeId: colosseum.id as string };
+  }, { lat: NYC.latitude, lng: NYC.longitude });
+
+  expect(result.status).toBe(403);
+  expect(result.body.error).toBe('TOO_FAR');
+  expect(result.body.distanceM).toBeGreaterThan(1_000_000);
+
+  // and the UI mirrors it: from NYC the button is disabled with the distance shown
+  await context.setGeolocation(NYC);
+  await page.goto(`/place/${result.placeId}`);
+  await page.getByTestId('enable-location').click();
+  await expect(page.getByTestId('collect-button')).toBeDisabled();
+  await expect(page.getByTestId('too-far-line')).toContainText('Get within 500 m');
+  await page.screenshot({ path: shot('07-too-far') });
+});
+
+test('API rejects unauthenticated requests', async ({ request }) => {
+  const res = await request.get('/api/places');
+  expect(res.status()).toBe(401);
+  const collect = await request.post('/api/places/whatever/collect', {
+    data: { lat: 0, lng: 0 },
+  });
+  expect(collect.status()).toBe(401);
+});
+
+test('custom places are private to their creator', async ({ request }) => {
+  const other = await request.post('/api/auth/register', {
+    data: {
+      email: `e2e-other-${Date.now()}@example.com`,
+      password: 'wanderlust2',
+      displayName: 'Other',
+    },
+  });
+  expect(other.status()).toBe(201);
+  const { places } = (await (await request.get('/api/places')).json()) as {
+    places: { name: string }[];
+  };
+  expect(places).toHaveLength(24);
+  expect(places.some((p) => p.name === 'Café de Flore')).toBe(false);
+});

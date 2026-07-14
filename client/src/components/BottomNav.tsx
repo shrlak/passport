@@ -11,11 +11,27 @@ const tabs = [
     ),
   },
   {
-    to: '/explore',
-    label: 'Explore',
+    to: '/landmarks',
+    label: 'Landmarks',
     icon: (
-      // compass
-      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 1.8a8.2 8.2 0 1 1 0 16.4 8.2 8.2 0 0 1 0-16.4Zm4.2 4-6 2.4-2.4 6 6-2.4 2.4-6ZM12 10.9a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2Z" />
+      // monument
+      <path d="M12 2 7 9h2v11h6V9h2L12 2Zm-1 9h2v7h-2v-7ZM5 21h14v1.6H5V21Z" />
+    ),
+  },
+  {
+    to: '/cities',
+    label: 'Cities',
+    icon: (
+      // skyline
+      <path d="M3 21V9l4-2v3l4-2v3l4-2v11H3Zm2-2h2v-2H5v2Zm0-4h2v-2H5v2Zm4 4h2v-2H9v2Zm0-4h2v-2H9v2Zm4 4h2v-2h-2v2ZM17 12h4v9h-4v-9Zm1 5h2v-2h-2v2Z" />
+    ),
+  },
+  {
+    to: '/us-states',
+    label: 'US States',
+    icon: (
+      // star
+      <path d="M12 2.5 14.7 9l7 .6-5.3 4.6 1.6 6.8L12 17.5 5.9 21l1.7-6.8L2.3 9.6l7-.6L12 2.5Z" />
     ),
   },
   {
@@ -39,28 +55,28 @@ const tabs = [
 export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-1/2 z-20 w-full max-w-md -translate-x-1/2 border-t border-ink/10 bg-paper-light/80 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
-      <div className="grid grid-cols-4">
+      <div className="grid grid-cols-6">
         {tabs.map((tab) => (
           <NavLink key={tab.to} to={tab.to} end={tab.to === '/'} className="relative">
             {({ isActive }) => (
               <motion.div
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 28 }}
-                className={`relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] tracking-wide transition-colors duration-200 ${
+                className={`relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-0.5 text-[9px] leading-tight tracking-tight transition-colors duration-200 ${
                   isActive ? 'text-terracotta' : 'text-ink-soft'
                 }`}
               >
                 {isActive && (
                   <motion.span
                     layoutId="bottom-nav-pill"
-                    className="absolute inset-x-3 inset-y-1 rounded-xl bg-terracotta/10"
+                    className="absolute inset-x-1 inset-y-1 rounded-xl bg-terracotta/10"
                     transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                   />
                 )}
-                <svg viewBox="0 0 24 24" className="relative h-6 w-6 fill-current" aria-hidden>
+                <svg viewBox="0 0 24 24" className="relative h-5 w-5 fill-current" aria-hidden>
                   {tab.icon}
                 </svg>
-                <span className="relative">{tab.label}</span>
+                <span className="relative text-center">{tab.label}</span>
               </motion.div>
             )}
           </NavLink>

@@ -27,7 +27,7 @@ export default function PassportPage() {
   return (
     <div className="px-4 pt-6">
       <header className="mb-1">
-        <p className="text-sm text-ink-soft">{user?.displayName}’s</p>
+        <p className="text-sm text-ink-soft">{user?.username}’s</p>
         <h1 className="font-display text-3xl">Travel Passport</h1>
         <p className="mt-0.5 text-xs tracking-wide text-ink-soft">Your passport to the world</p>
       </header>

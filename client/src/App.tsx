@@ -3,11 +3,12 @@ import { Navigate, Outlet, Route, Routes } from 'react-router';
 import { motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { LocationProvider } from './hooks/useGeolocation';
+import { UnitsProvider } from './hooks/useUnits';
 import { BottomNav } from './components/BottomNav';
 import { GlobeIntro } from './components/GlobeIntro';
 import AuthPage from './pages/AuthPage';
 import PassportPage from './pages/PassportPage';
-import ExplorePage from './pages/ExplorePage';
+import CategoryExplorePage from './pages/CategoryExplorePage';
 import PlaceDetailPage from './pages/PlaceDetailPage';
 import AddPlacePage from './pages/AddPlacePage';
 import ProfilePage from './pages/ProfilePage';
@@ -43,20 +44,24 @@ function Shell() {
 export default function App() {
   return (
     <AuthProvider>
-      <LocationProvider>
-        <Routes>
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route element={<Shell />}>
-            <Route index element={<PassportPage />} />
-            <Route path="explore" element={<ExplorePage />} />
-            <Route path="place/:id" element={<PlaceDetailPage />} />
-            <Route path="add" element={<AddPlacePage />} />
-            <Route path="profile" element={<ProfilePage />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </LocationProvider>
+      <UnitsProvider>
+        <LocationProvider>
+          <Routes>
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route element={<Shell />}>
+              <Route index element={<PassportPage />} />
+              <Route path="landmarks" element={<CategoryExplorePage key="landmark" category="landmark" />} />
+              <Route path="cities" element={<CategoryExplorePage key="city" category="city" />} />
+              <Route path="us-states" element={<CategoryExplorePage key="us-state" category="us-state" />} />
+              <Route path="place/:id" element={<PlaceDetailPage />} />
+              <Route path="add" element={<AddPlacePage />} />
+              <Route path="profile" element={<ProfilePage />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </LocationProvider>
+      </UnitsProvider>
     </AuthProvider>
   );
 }

@@ -1,63 +1,36 @@
-import { useCallback, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/Button';
 import { StampSVG } from '../art/StampSVG';
-import { ApiError, IS_LOCAL_BACKEND } from '../lib/api';
-import { GoogleSignInButton } from '../components/GoogleSignInButton';
+import { ApiError } from '../lib/api';
 
 const ERROR_COPY: Record<string, string> = {
-  INVALID_CREDENTIALS: 'Wrong email or password.',
-  EMAIL_TAKEN: 'An account with this email already exists — try signing in.',
-  INVALID_EMAIL: 'That doesn’t look like a valid email address.',
+  INVALID_CREDENTIALS: 'Wrong username or password.',
+  USERNAME_TAKEN: 'That username is already taken — try signing in, or pick another.',
+  INVALID_USERNAME: 'Usernames are 3–24 characters: letters, numbers, and underscores only.',
   WEAK_PASSWORD: 'Password must be at least 8 characters.',
-  INVALID_GOOGLE_TOKEN: 'Google sign-in didn’t go through — try again.',
-  GOOGLE_EMAIL_UNVERIFIED: 'That Google account’s email isn’t verified.',
-  GOOGLE_LOGIN_UNAVAILABLE: 'Google sign-in isn’t configured on this server.',
 };
 
-// Baked in at build time; unset in the static GitHub Pages demo, which has
-// no real per-account backend for Google to sign into.
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
-
 export default function AuthPage() {
-  const { user, loading, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, loading, signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   if (!loading && user) return <Navigate to="/" replace />;
-
-  const handleGoogleCredential = useCallback(
-    (credential: string) => {
-      setBusy(true);
-      setError(null);
-      signInWithGoogle(credential)
-        .then(() => navigate('/', { replace: true }))
-        .catch((err) => {
-          setError(
-            err instanceof ApiError
-              ? (ERROR_COPY[err.code] ?? 'Something went wrong. Try again.')
-              : 'Could not reach the server. Are you online?',
-          );
-        })
-        .finally(() => setBusy(false));
-    },
-    [signInWithGoogle, navigate],
-  );
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      if (mode === 'signin') await signIn(email, password);
-      else await signUp(email, password, displayName);
+      if (mode === 'signin') await signIn(username, password);
+      else await signUp(username, password);
       navigate('/', { replace: true });
     } catch (err) {
       setError(
@@ -95,24 +68,18 @@ export default function AuthPage() {
       </p>
 
       <form onSubmit={submit} className="mt-8 flex flex-col gap-3">
-        {mode === 'signup' && (
-          <input
-            className="input"
-            placeholder="Display name"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            autoComplete="name"
-            maxLength={40}
-          />
-        )}
         <input
           className="input"
-          type="email"
           required
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
+          placeholder="Username"
+          minLength={3}
+          maxLength={24}
+          pattern="[a-zA-Z0-9_]+"
+          title="Letters, numbers, and underscores only"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="username"
+          data-testid="auth-username"
         />
         <input
           className="input"
@@ -123,6 +90,7 @@ export default function AuthPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+          data-testid="auth-password"
         />
         {error && (
           <p className="rounded-lg bg-terracotta/10 px-3 py-2 text-sm text-terracotta" role="alert">
@@ -133,19 +101,6 @@ export default function AuthPage() {
           {busy ? 'One moment…' : mode === 'signin' ? 'Sign in' : 'Create account'}
         </Button>
       </form>
-
-      {GOOGLE_CLIENT_ID && !IS_LOCAL_BACKEND && (
-        <>
-          <div className="mt-5 flex items-center gap-3 text-xs text-ink-soft">
-            <div className="h-px flex-1 bg-ink/10" />
-            <span>or</span>
-            <div className="h-px flex-1 bg-ink/10" />
-          </div>
-          <div className="mt-4">
-            <GoogleSignInButton clientId={GOOGLE_CLIENT_ID} onCredential={handleGoogleCredential} />
-          </div>
-        </>
-      )}
 
       <button
         type="button"

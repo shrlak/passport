@@ -31,6 +31,7 @@ function serializePlace(place: PlaceRow, stamp: StampRow | null) {
     isCurated: place.is_curated === 1,
     isMine: place.created_by !== null,
     artKey: place.art_key,
+    category: place.category,
     createdAt: place.created_at,
     stamp: stamp ? serializeStamp(stamp) : null,
   };

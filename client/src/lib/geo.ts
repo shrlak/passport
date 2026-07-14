@@ -20,7 +20,17 @@ export function haversineMeters(
   return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
-export function formatDistance(meters: number): string {
+const METERS_PER_FOOT = 0.3048;
+const FEET_PER_MILE = 5280;
+
+export function formatDistance(meters: number, units: 'metric' | 'imperial' = 'metric'): string {
+  if (units === 'imperial') {
+    const feet = meters / METERS_PER_FOOT;
+    if (feet < FEET_PER_MILE) return `${Math.round(feet).toLocaleString()} ft`;
+    const miles = feet / FEET_PER_MILE;
+    if (miles < 10) return `${miles.toFixed(1)} mi`;
+    return `${Math.round(miles).toLocaleString()} mi`;
+  }
   if (meters < 1000) return `${Math.round(meters)} m`;
   if (meters < 10000) return `${(meters / 1000).toFixed(1)} km`;
   return `${Math.round(meters / 1000).toLocaleString()} km`;

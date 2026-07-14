@@ -1,6 +1,8 @@
 import { COLLECT_RADIUS_M, formatDistance } from '../lib/geo';
+import { useUnits } from '../hooks/useUnits';
 
 export function DistanceBadge({ meters }: { meters: number }) {
+  const { units } = useUnits();
   const inRange = meters <= COLLECT_RADIUS_M;
   return (
     <span
@@ -9,7 +11,7 @@ export function DistanceBadge({ meters }: { meters: number }) {
       }`}
     >
       {inRange && <span className="h-1.5 w-1.5 rounded-full bg-teal" aria-hidden />}
-      {inRange ? 'In range' : formatDistance(meters)}
+      {inRange ? 'In range' : formatDistance(meters, units)}
     </span>
   );
 }

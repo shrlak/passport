@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/Button';
 import { BrandMark } from '../components/BrandMark';
+import { StampSVG } from '../art/StampSVG';
 import { ApiError } from '../lib/api';
 
 const ERROR_COPY: Record<string, string> = {
@@ -45,29 +46,48 @@ export default function AuthPage() {
 
   return (
     <motion.main
-      className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-10"
+      className="relative mx-auto flex min-h-dvh max-w-md flex-col justify-center overflow-hidden px-5 py-10"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
+      <div className="pointer-events-none absolute -top-32 -left-28 h-80 w-80 rounded-full bg-[radial-gradient(circle,#9bd0ff_0%,#dcefff_38%,transparent_70%)] opacity-65" />
+      <div className="pointer-events-none absolute -right-36 -bottom-32 h-96 w-96 rounded-full bg-[radial-gradient(circle,#ffd28d_0%,#ffedcc_38%,transparent_70%)] opacity-70" />
+      <div className="pointer-events-none absolute top-[13%] -left-8 w-24 -rotate-[12deg] opacity-45 blur-[0.2px]" aria-hidden>
+        <StampSVG
+          subject={{ id: 'auth-paris', name: 'Paris', country: 'France', artKey: 'eiffel' }}
+          locked={false}
+          className="w-full drop-shadow-lg"
+        />
+      </div>
+      <div className="pointer-events-none absolute right-[-2rem] bottom-[12%] w-24 rotate-[10deg] opacity-40 blur-[0.2px]" aria-hidden>
+        <StampSVG
+          subject={{ id: 'auth-tokyo', name: 'Tokyo', country: 'Japan', artKey: 'fuji' }}
+          locked={false}
+          className="w-full drop-shadow-lg"
+        />
+      </div>
+
       <motion.div
-        className="mx-auto mb-5 rounded-[18px] shadow-[0_14px_36px_rgba(74,56,44,0.2)]"
+        className="relative z-10 mx-auto mb-4 rounded-[18px] shadow-[0_14px_36px_rgba(74,56,44,0.2)]"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
       >
         <BrandMark size={76} />
       </motion.div>
-      <h1 className="text-center font-display text-[38px] leading-tight">StampQuest</h1>
-      <p className="mx-auto mt-2 max-w-72 text-center text-[15px] leading-relaxed text-ink-soft">
+      <p className="relative z-10 text-center text-[10px] font-bold tracking-[0.16em] text-teal uppercase">Your world in stamps</p>
+      <h1 className="relative z-10 mt-1 text-center font-display text-[40px] leading-tight">StampQuest</h1>
+      <p className="relative z-10 mx-auto mt-2 max-w-72 text-center text-[15px] leading-relaxed text-ink-soft">
         Turn the places you visit into a passport that is entirely yours.
       </p>
 
       <form
         onSubmit={submit}
-        className="mt-8 flex flex-col gap-3 rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(0,0,0,0.08)]"
+        className="glass-panel relative z-10 mt-7 flex flex-col gap-3 rounded-[30px] p-5"
       >
         <div className="mb-1">
+          <p className="eyebrow text-ink-soft">{mode === 'signin' ? 'Continue the journey' : 'Begin the journey'}</p>
           <p className="font-display text-xl">
             {mode === 'signin' ? 'Welcome back' : 'Create your passport'}
           </p>
@@ -113,7 +133,7 @@ export default function AuthPage() {
 
       <button
         type="button"
-        className="mt-5 text-center text-sm font-medium text-teal transition-opacity hover:opacity-70"
+        className="relative z-10 mx-auto mt-4 rounded-full border border-white/70 bg-white/62 px-4 py-2.5 text-center text-sm font-semibold text-teal shadow-sm backdrop-blur-xl transition-transform hover:-translate-y-0.5"
         onClick={() => {
           setMode(mode === 'signin' ? 'signup' : 'signin');
           setError(null);

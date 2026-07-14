@@ -8,7 +8,7 @@ A mobile-first web app where you collect digital stamps from places you visit an
 
 ## Features
 
-- **GPS check-in** — the Collect button unlocks only when you're physically near a place; the server re-validates the distance, so the client can't be trivially spoofed.
+- **One-time GPS check-in setup** — location is requested once, just after sign-in or sign-up, then retained across pages and refreshes until sign-out. The Collect button unlocks only when you're physically near a place, and the server re-validates the distance so the client can't be trivially spoofed.
 - **Remote collection with photo evidence** — no GPS needed: upload a photo you already have of the place. It's accepted if the photo's own EXIF location is near the place, or (with photo verification configured) if the photo visibly shows the landmark.
 - **Illustrated, locked stamps** — every place immediately shows its own colorful travel-poster artwork beneath a translucent glass lock, so the passport stays visual before anything has been collected.
 - **Your photo is the stamp** — the first photo you add for a place — from collecting in person or via photo evidence — replaces the built-in illustration and removes its lock, inside the same vintage postage-stamp frame.
@@ -16,13 +16,13 @@ A mobile-first web app where you collect digital stamps from places you visit an
 - **Custom places** — add your own spots (café, trailhead, rooftop) from the floating **+** button, wherever you are in the app; each gets a generated stamp in the same style. Private to your account.
 - **Simple accounts** — sign up with just a username and password. Your stamps, custom places, and photos are private to your account; no third-party sign-in required. The static Pages build provides the same account gate locally with PBKDF2-hashed passwords and per-account device storage.
 - **Profile photo** — tap your avatar in the top-right corner or on the profile tab to add or replace your profile picture.
-- **Home landing page** — a stats strip (stamps, countries, continents traveled) up top, then three cards — Landmarks, Cities, US States — each opening into its own browsing page, reached only from here.
+- **Immersive home landing page** — an editorial travel hero, animated route, live collection progress, and three visual passport chapters — Landmarks, Cities, US States — each opening into its own browsing page.
 - **Refresh returns home** — a full browser refresh always reopens the main passport landing page; normal in-app navigation still preserves the selected place or category.
 - **Browse by Landmarks, Cities, or US States** — each category page offers a **card or map view** (the map is a real pannable/zoomable Leaflet map with OpenStreetMap tiles, lazy-loaded so it never costs anyone who stays on card view), plus its own search.
 - **Metric or imperial** — a units toggle on your profile switches every distance in the app (collect radius, "how far away," photo-match radius) between the two, remembered per device.
 - **Personal passport** — your home page's stats strip tracks stamps, countries, and continents traveled; your profile shows a 3-column gallery of everything you've collected plus the custom places you've added.
 - **Globe-trotting intro** — a one-time animated splash (spinning globe, orbiting plane, landmarks lighting up across every continent) plays when you enter the app, then fades into your passport underneath.
-- **Focused Apple-style interface** — system typography, frosted navigation, spacious white cards, a dedicated travel mark, and restrained motion keep the collection—not the chrome—at center stage.
+- **Cinematic Apple-style interface** — system typography, floating frosted navigation, atmospheric gradients, tactile stamp albums, bold destination heroes, and restrained motion make every page feel like a modern travel journal.
 - **Installable PWA** — add to home screen, standalone display, offline app shell.
 - **Self-contained backend** — Node + Express + SQLite in this repo. No third-party services required.
 
@@ -42,7 +42,7 @@ npm run dev
 - App: http://localhost:5173 (Vite dev server, proxies `/api` to the API on :3001)
 - The SQLite database is created and seeded automatically at `server/data/stampquest.db`.
 
-> **Testing on a real phone:** browser geolocation only works in secure contexts — `localhost` is exempt, but a LAN IP (`http://192.168.x.x:5173`) is not. Use an HTTPS tunnel (e.g. `cloudflared tunnel`, `ngrok`) or deploy. On iOS, location is only requested after a button tap (by design).
+> **Testing on a real phone:** browser geolocation only works in secure contexts — `localhost` is exempt, but a LAN IP (`http://192.x.x.x:5173`) is not. Use an HTTPS tunnel (e.g. `cloudflared tunnel`, `ngrok`) or deploy. On iOS, the one-time location setup is shown after authentication and permission is requested only after its button is tapped.
 
 ## Production
 
@@ -77,7 +77,7 @@ To try the static build locally: `VITE_BACKEND=local npm run build -w client && 
 
 ## How collecting works
 
-1. The client asks for your position (only ever after a button tap).
+1. Immediately after sign-in or sign-up, the app offers one-time location setup. A button tap requests the browser permission; accepted coordinates are retained for that signed-in account across navigation and refreshes, then cleared on sign-out.
 2. `POST /api/places/:id/collect` sends your coordinates.
 3. The server computes the Haversine distance to the place and rejects anything over **500 m** (`403 TOO_FAR`), duplicates (`409 ALREADY_COLLECTED`), and places you can't see (`404`).
 4. The stamp row stores when and roughly where you collected it.
@@ -124,7 +124,7 @@ npx playwright install chromium   # once
 npm run e2e
 ```
 
-The suite builds the client, boots the server on a throwaway database (with `GOOGLE_API_KEY`/`HUGGINGFACE_API_KEY` unset, so the landmark-recognition path is deterministically off), and drives the real app at 390×844 with mocked geolocation: unauthenticated route gate → registration → home landing page (329-place stats and category cards) → the Landmarks card's card and map views → in-range detection at the Eiffel Tower → collect → verify its built-in illustration and translucent lock → add a photo, which replaces both → persistence across reload → the 76-city and 50-state collections (including state-name labels) → custom place creation via the floating **+** button → the profile's collected-stamps gallery, units toggle, profile-photo upload, and sign-out → **server-side rejection of far-away coordinates** → **remote collection via matching photo EXIF GPS**, plus rejection of a too-far or location-less photo → account privacy checks.
+The suite builds the client, boots the server on a throwaway database (with `GOOGLE_API_KEY`/`HUGGINGFACE_API_KEY` unset, so the landmark-recognition path is deterministically off), and drives the real app at 390×844 with mocked geolocation: unauthenticated route gate → registration → one-time location onboarding → home landing page (329-place stats and category cards) → the Landmarks card's card and map views → in-range detection at the Eiffel Tower → collect → verify its built-in illustration and translucent lock → add a photo, which replaces both → location and collection persistence across reload → the 76-city and 50-state collections (including state-name labels) → custom place creation via the floating **+** button → the profile's collected-stamps gallery, units toggle, profile-photo upload, location cleanup, and sign-out → **server-side rejection of far-away coordinates** → **remote collection via matching photo EXIF GPS**, plus rejection of a too-far or location-less photo → account privacy checks.
 
 ## Stamp art
 

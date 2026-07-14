@@ -12,7 +12,7 @@
     {
       "binding": "DB",
       "database_name": "stampquest",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "d4045c6e-045f-46af-919b-92dc6d60c0ce",
       "migrations_dir": "migrations"
     }
   ],

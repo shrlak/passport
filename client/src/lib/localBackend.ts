@@ -31,7 +31,7 @@ interface LocalAccount {
   createdAt: string;
 }
 
-interface CustomPlace {
+export interface LocalCustomPlace {
   id: string;
   name: string;
   country: string;
@@ -41,6 +41,13 @@ interface CustomPlace {
   category?: PlaceCategory;
   state?: string | null;
   createdAt: string;
+}
+
+export interface LocalMigrationSnapshot {
+  customPlaces: LocalCustomPlace[];
+  stamps: Stamp[];
+  profilePhoto: string | null;
+  stampPhotos: Record<string, string>;
 }
 
 interface LocalResult {
@@ -195,7 +202,7 @@ const stampPhotoKey = (accountId: number, placeId: string) =>
 
 const stamps = (accountId: number) => load<Record<string, Stamp>>(stampsKey(accountId), {});
 const customPlaces = (accountId: number) =>
-  load<CustomPlace[]>(placesKey(accountId), []);
+  load<LocalCustomPlace[]>(placesKey(accountId), []);
 
 function activeAccount(): LocalAccount | null {
   const accountId = load<number | null>(GLOBAL_KEYS.session, null);
@@ -252,12 +259,12 @@ function newSalt(): string {
 }
 
 function toPlace(
-  seedOrCustom: (typeof SEED_PLACES)[number] | CustomPlace,
+  seedOrCustom: (typeof SEED_PLACES)[number] | LocalCustomPlace,
   curated: boolean,
   stampMap: Record<string, Stamp>,
 ): Place {
   const seed = curated ? (seedOrCustom as (typeof SEED_PLACES)[number]) : null;
-  const custom = curated ? null : (seedOrCustom as CustomPlace);
+  const custom = curated ? null : (seedOrCustom as LocalCustomPlace);
   return {
     id: seedOrCustom.id,
     name: seedOrCustom.name,
@@ -270,7 +277,7 @@ function toPlace(
     artKey: seed?.artKey ?? null,
     category: seed?.category ?? custom?.category ?? 'landmark',
     state: seed?.state ?? custom?.state ?? null,
-    createdAt: curated ? '' : (seedOrCustom as CustomPlace).createdAt,
+    createdAt: curated ? '' : (seedOrCustom as LocalCustomPlace).createdAt,
     stamp: stampMap[seedOrCustom.id] ?? null,
   };
 }
@@ -306,6 +313,41 @@ async function me(account: LocalAccount): Promise<LocalResult> {
   return {
     status: 200,
     data: { user: publicUser(account, photoUrl), stats: stats(account.id) },
+  };
+}
+
+/**
+ * Returns a verified local account's passport for one-time cloud migration.
+ * Password hashes and other accounts never leave the device.
+ */
+export async function exportLocalAccount(
+  username: string,
+  password: string,
+): Promise<LocalMigrationSnapshot | null> {
+  const account = accounts().find(
+    (candidate) => candidate.username.toLowerCase() === username.toLowerCase(),
+  );
+  if (
+    !account ||
+    (await passwordHash(password, account.passwordSalt)) !== account.passwordHash
+  ) {
+    return null;
+  }
+
+  const stampMap = stamps(account.id);
+  const stampPhotos: Record<string, string> = {};
+  await Promise.all(
+    Object.keys(stampMap).map(async (placeId) => {
+      const photo = await idbGet(stampPhotoKey(account.id, placeId));
+      if (photo) stampPhotos[placeId] = photo;
+    }),
+  );
+
+  return {
+    customPlaces: customPlaces(account.id),
+    stamps: Object.values(stampMap).map((stamp) => ({ ...stamp, photoUrl: null })),
+    profilePhoto: (await idbGet(profilePhotoKey(account.id))) ?? null,
+    stampPhotos,
   };
 }
 
@@ -484,7 +526,7 @@ export async function localRequest(
     ) {
       return fail(400, 'INVALID_CATEGORY');
     }
-    const place: CustomPlace = {
+    const place: LocalCustomPlace = {
       id: crypto.randomUUID(),
       name: name.trim().slice(0, 80),
       country: country.trim().slice(0, 60),

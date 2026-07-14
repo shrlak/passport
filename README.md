@@ -14,7 +14,7 @@ A mobile-first web app where you collect digital stamps from places you visit an
 - **Your photo is the stamp** — the first photo you add for a place — from collecting in person or via photo evidence — replaces the built-in illustration and removes its lock, inside the same vintage postage-stamp frame.
 - **329 curated places** — 203 landmarks, 76 cities, and one iconic stop in each of the 50 U.S. states — spanning Asia, Europe, the Americas, Africa, and Oceania. Each has deterministic illustrated artwork until you fill it with your own photo.
 - **Automatic custom-place location** — add your own café, trailhead, city, or state from the floating **+** button. The app uses photo EXIF GPS first, always confirms it against the typed place, falls back to typed coordinates only when the photo has no GPS, and automatically files the result under Landmarks, Cities, or States. There is no coordinate-source or category selector.
-- **Simple accounts** — sign up with just a username and password. Your stamps, custom places, and photos are private to your account; no third-party sign-in required. The static Pages build provides the same account gate locally with PBKDF2-hashed passwords and per-account device storage.
+- **Cloud-synced accounts** — sign up with just a username and password. The Cloudflare deployment keeps stamps, custom places, profile photos, and stamp photos synchronized across devices. Existing browser-only passports migrate automatically after their first cloud sign-in.
 - **Profile photo** — tap your avatar in the top-right corner or on the profile tab to add or replace your profile picture.
 - **Immersive home landing page** — an editorial travel hero, animated route, live collection progress, and three visual passport chapters — Landmarks, Cities, States — each opening into its own browsing page.
 - **Refresh returns home** — a full browser refresh always reopens the main passport landing page; normal in-app navigation still preserves the selected place or category.
@@ -30,6 +30,7 @@ A mobile-first web app where you collect digital stamps from places you visit an
 
 - `client/` — Vite, React 19, TypeScript, Tailwind CSS v4, react-router, vite-plugin-pwa, `framer-motion` for animation, `leaflet`/`react-leaflet` for the map view (code-split, only loaded when opened), `exifr` for reading a photo's embedded GPS, and Web Crypto for hashed local-mode accounts
 - `server/` — Express 5, better-sqlite3, session cookies (httpOnly), scrypt password hashing via `node:crypto`, optional Gemini/Hugging Face vision check for photo-evidence collection
+- `worker/` — Cloudflare Worker API, D1 account/stamp database, R2 private photo storage, PBKDF2 password hashing, bearer sessions, and one-time local-passport migration
 - `e2e/` — Playwright suite with mocked geolocation at phone viewport
 
 ## Quickstart
@@ -65,17 +66,47 @@ One process serves everything: the built client, the SPA fallback, and the `/api
 | `GEOCODER_URL` | `https://nominatim.openstreetmap.org/search` | Optional runtime override for the server-side custom-place geocoder. |
 | `GEOCODER_USER_AGENT` | `StampQuest/0.1 (+repository URL)` | Identifies server-side geocoding requests; customize this with a deployment contact URL. |
 
-**Deploying free:** the app is a single Node service, so Render/Fly.io/Railway free tiers all work. Two things to remember: (1) point `DATABASE_PATH` at a **persistent disk/volume** — ephemeral filesystems reset the database on every deploy; (2) serve over **HTTPS**, or geolocation (and Secure cookies) won't work.
+**Node-hosting alternative:** the app is a single Node service and can run on platforms such as Render, Fly.io, or Railway when a suitable plan is available. Two things to remember: (1) point `DATABASE_PATH` at a **persistent disk/volume** — ephemeral filesystems reset the database on every deploy; (2) serve over **HTTPS**, or geolocation (and Secure cookies) won't work.
 
-### GitHub Pages (static demo mode)
+### GitHub Pages
 
-Every push to the default branch runs `.github/workflows/deploy-pages.yml`, which publishes a static build to **https://shrlak.github.io/passport/**.
+Every push to the default branch runs `.github/workflows/deploy-pages.yml`, which publishes a static build to **https://shrlak.github.io/stampquest/**.
 
-GitHub Pages can't run the Node API, so this build swaps in a browser backend (`VITE_BACKEND=local`). It has a real local sign-up/sign-in gate: passwords are salted and PBKDF2-hashed with Web Crypto, and each account gets isolated stamps, custom places, profile photo, and stamp photos. Data remains on that browser/device, so there is no cross-device sync. The 500 m and photo-radius checks run client-side, and photo evidence uses EXIF GPS only because Gemini/Hugging Face verification requires the Node server. Automatic custom-place confirmation calls the configured geocoder directly when the catalog cannot resolve the typed place, with a browser cache and one-request-per-second throttle. Since Pages serves over HTTPS, GPS collection and PWA installation work on phones.
+When the `STAMPQUEST_API_URL` repository variable is configured, Pages uses the Cloudflare API and account data synchronizes across devices. Without that variable, the workflow deliberately falls back to the original browser-only mode so the site remains deployable during initial setup. The cloud API uses D1 for indexed account data and R2 for private photos; the browser keeps only its bearer session. Bringing an existing local account online automatically merges its stamps and custom places and uploads only photos that are missing from the cloud account.
+
+The cloud path keeps the full static-site performance profile: GitHub Pages serves the app shell and assets, while only account data goes through the Worker. Cloudflare's current free allowances cover 100,000 Worker requests per day, 5 million D1 row reads per day, 100,000 D1 row writes per day, a 500 MB limit for the app's D1 database (5 GB total per account), and 10 GB-month of R2 storage with free egress. See the official [Workers](https://developers.cloudflare.com/workers/platform/pricing/), [D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/), [D1 limits](https://developers.cloudflare.com/d1/platform/limits/), and [R2](https://developers.cloudflare.com/r2/pricing/) pages for current limits.
 
 The workflow publishes the build to a `gh-pages` branch, which GitHub picks up automatically. If the site doesn't appear after the first successful run, enable it once by hand — repo **Settings → Pages → Deploy from a branch → `gh-pages` / root** — later deploys are automatic.
 
 To try the static build locally: `VITE_BACKEND=local npm run build -w client && npm run preview -w client`.
+
+### One-time free cloud-sync setup
+
+1. Create a free Cloudflare account, install dependencies, then authenticate Wrangler:
+
+   ```bash
+   npm install
+   npx wrangler login
+   ```
+
+2. Create the free D1 database and R2 bucket:
+
+   ```bash
+   npx wrangler d1 create stampquest
+   npx wrangler r2 bucket create stampquest-photos
+   ```
+
+3. Copy the D1 `database_id` returned by the first command into `worker/wrangler.jsonc`, replacing `00000000-0000-0000-0000-000000000000`, then deploy:
+
+   ```bash
+   npm run deploy -w worker
+   ```
+
+4. In GitHub repository settings, add the Worker URL (for example, `https://stampquest-api.<your-subdomain>.workers.dev`) as the Actions variable `STAMPQUEST_API_URL`. Run the **Deploy to GitHub Pages** workflow once more.
+
+5. For automatic future Worker deployments, create a scoped Cloudflare API token with Workers Scripts, D1, and R2 edit access. Add it as `CLOUDFLARE_API_TOKEN`, and add the account ID as `CLOUDFLARE_ACCOUNT_ID`, under GitHub Actions secrets.
+
+The first device that signs in with a pre-cloud account automatically creates the matching cloud account and uploads that local passport. Other devices can then sign in with the same username and password and receive the merged collection. Returning to an already-open tab refreshes the shared data when the tab regains focus.
 
 ## How collecting works
 
@@ -101,7 +132,7 @@ There is no coordinate-source, manual-coordinate, saved-GPS, or category selecto
 
 On any place you haven't collected yet, the detail page offers **"Collect with a photo"** — for the landmarks you've already visited, or ones you have an old photo of. `POST /api/places/:id/collect-photo` accepts the image and grants the stamp if either check passes:
 
-1. **EXIF GPS match** — the client reads the photo's embedded location (`client/src/lib/exif.ts`, via `exifr`) and sends it alongside the image. If it's within **5 km** of the place (`PHOTO_RADIUS_M` in `server/src/geo.ts` — more generous than live GPS, since landmark photos are often taken from a viewpoint some distance away), the stamp is granted immediately.
+1. **EXIF GPS match** — the client reads the photo's embedded location (`client/src/lib/exif.ts`, via `exifr`) and sends it alongside the image. If it's within **10 miles (16.1 km)** of the place (`PHOTO_RADIUS_M` in `client/src/lib/geo.ts` and `server/src/geo.ts`), the stamp is granted immediately.
 2. **Landmark recognition** — if there's no usable EXIF location (or it doesn't match), `server/src/landmark.ts` asks Gemini when `GOOGLE_API_KEY` is configured, then falls back to Hugging Face when `HUGGINGFACE_API_KEY` is available. A confident match grants the stamp.
 
 Either way, the uploaded photo becomes the stamp's artwork — same as collecting in person and adding a photo afterward. Without either vision provider configured, only the EXIF path is available, and the UI explains that when a photo is rejected for having no location data.

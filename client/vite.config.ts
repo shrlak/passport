@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  // Set VITE_BASE when deploying under a sub-path (GitHub Pages: /passport/).
+  // Set VITE_BASE when deploying under a sub-path (GitHub Pages: /stampquest/).
   base: process.env.VITE_BASE ?? '/',
   plugins: [
     react(),

@@ -47,6 +47,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshMe().finally(() => setLoading(false));
   }, [refreshMe]);
 
+  // Pull shared account totals whenever this device returns to the app. This
+  // makes changes made on another device appear without requiring a sign-out.
+  useEffect(() => {
+    const refreshWhenActive = () => {
+      if (document.visibilityState === 'visible') void refreshMe();
+    };
+    window.addEventListener('focus', refreshWhenActive);
+    document.addEventListener('visibilitychange', refreshWhenActive);
+    return () => {
+      window.removeEventListener('focus', refreshWhenActive);
+      document.removeEventListener('visibilitychange', refreshWhenActive);
+    };
+  }, [refreshMe]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,

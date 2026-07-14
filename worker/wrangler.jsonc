@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stampquest-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-14",
+  "workers_dev": true,
+  "vars": {
+    "ALLOWED_ORIGIN": "https://shrlak.github.io",
+    "GEOCODER_URL": "https://nominatim.openstreetmap.org/search"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "stampquest",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "PHOTOS",
+      "bucket_name": "stampquest-photos"
+    }
+  ]
+}

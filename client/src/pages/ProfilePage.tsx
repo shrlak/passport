@@ -126,6 +126,19 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {!IS_LOCAL_BACKEND && (
+        <div
+          className="mt-3 flex items-center gap-3 rounded-[20px] border border-olive/15 bg-olive/8 px-4 py-3"
+          data-testid="cloud-sync-status"
+        >
+          <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-olive shadow-[0_0_0_5px_rgba(92,116,73,0.1)]" />
+          <div>
+            <p className="text-sm font-semibold text-ink">Cloud sync is active</p>
+            <p className="text-xs text-ink-soft">Your passport follows this account across devices.</p>
+          </div>
+        </div>
+      )}
+
       <div className="mt-7 mb-3 flex items-end justify-between px-1">
         <div>
           <p className="eyebrow text-ink-soft">Your album</p>

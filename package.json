@@ -6,11 +6,13 @@
   "type": "module",
   "workspaces": [
     "client",
-    "server"
+    "server",
+    "worker"
   ],
   "scripts": {
     "dev": "concurrently -n api,web -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
     "build": "npm run build -w client && npm run build -w server",
+    "build:worker": "npm run build -w worker",
     "start": "npm run start -w server",
     "typecheck": "npm run typecheck -w client && npm run typecheck -w server",
     "gen-icons": "node scripts/gen-icons.mjs",

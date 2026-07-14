@@ -5,7 +5,7 @@ const NYC = { latitude: 40.7128, longitude: -74.006 };
 const shot = (name: string) => fileURLToPath(new URL(`screenshots/${name}.png`, import.meta.url));
 
 // Keep in sync with the curated roster in server/src/seed.ts.
-const CURATED_COUNT = 133;
+const CURATED_COUNT = 281;
 
 // One account shared across the serial suite.
 const email = `e2e-${Date.now()}@example.com`;

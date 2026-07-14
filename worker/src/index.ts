@@ -21,6 +21,10 @@ interface UserRow {
   media_token: string;
   photo_mime: string | null;
   photo_updated_at: string | null;
+  data_version: number;
+  local_migration_session_hash: string | null;
+  local_migration_started_at: string | null;
+  local_migration_completed_at: string | null;
   created_at: string;
 }
 
@@ -90,6 +94,7 @@ interface NominatimResult {
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,24}$/;
 const PASSWORD_ITERATIONS = 120_000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const MIGRATION_LEASE_MS = 30 * 60 * 1000;
 const PHOTO_DATA_URL = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/;
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
 const MAX_MIGRATION_CUSTOM_PLACES = 80;
@@ -415,6 +420,9 @@ async function saveStamp(
       throw error;
     }
   }
+  await env.DB.prepare('UPDATE users SET data_version = data_version + 1 WHERE id = ?')
+    .bind(user.id)
+    .run();
   return stamp;
 }
 
@@ -482,7 +490,12 @@ async function handleAuth(request: Request, env: Env, path: string): Promise<Res
       return json(
         request,
         env,
-        { user: serializeUser(user, origin), stats: await stats(env, user.id), sessionToken },
+        {
+          user: serializeUser(user, origin),
+          stats: await stats(env, user.id),
+          syncVersion: user.data_version,
+          sessionToken,
+        },
         201,
       );
     } catch (error) {
@@ -507,10 +520,23 @@ async function handleAuth(request: Request, env: Env, path: string): Promise<Res
     if (!constantTimeEqual(candidate, user.password_hash)) {
       return json(request, env, { error: 'INVALID_CREDENTIALS' }, 401);
     }
+    // A normal login is never allowed to start a new legacy import. Only the
+    // session created together with a brand-new cloud account may claim it.
+    // This also protects accounts from older cached clients on another device.
+    await env.DB.prepare(
+      `UPDATE users
+       SET local_migration_completed_at = ?
+       WHERE id = ?
+         AND local_migration_completed_at IS NULL
+         AND local_migration_session_hash IS NULL`,
+    )
+      .bind(new Date().toISOString(), user.id)
+      .run();
     const sessionToken = await createSession(env, user.id);
     return json(request, env, {
       user: serializeUser(user, origin),
       stats: await stats(env, user.id),
+      syncVersion: user.data_version,
       sessionToken,
     });
   }
@@ -528,7 +554,14 @@ async function handleAuth(request: Request, env: Env, path: string): Promise<Res
     return json(request, env, {
       user: serializeUser(user, origin),
       stats: await stats(env, user.id),
+      syncVersion: user.data_version,
     });
+  }
+
+  if (path === '/api/sync' && request.method === 'GET') {
+    const user = await requireUser(request, env);
+    if (user instanceof Response) return user;
+    return json(request, env, { version: user.data_version });
   }
 
   if (path === '/api/auth/me/photo' && request.method === 'PUT') {
@@ -540,11 +573,23 @@ async function handleAuth(request: Request, env: Env, path: string): Promise<Res
     await env.PHOTOS.put(profilePhotoKey(user.id), photo.bytes, {
       httpMetadata: { contentType: photo.mime },
     });
-    await env.DB.prepare('UPDATE users SET photo_mime = ?, photo_updated_at = ? WHERE id = ?')
+    await env.DB.prepare(
+      `UPDATE users
+       SET photo_mime = ?, photo_updated_at = ?, data_version = data_version + 1
+       WHERE id = ?`,
+    )
       .bind(photo.mime, updatedAt, user.id)
       .run();
-    const updated = { ...user, photo_mime: photo.mime, photo_updated_at: updatedAt };
-    return json(request, env, { user: serializeUser(updated, origin) });
+    const updated = {
+      ...user,
+      photo_mime: photo.mime,
+      photo_updated_at: updatedAt,
+      data_version: user.data_version + 1,
+    };
+    return json(request, env, {
+      user: serializeUser(updated, origin),
+      syncVersion: updated.data_version,
+    });
   }
 
   return null;
@@ -679,6 +724,52 @@ async function handleMigration(
   user: SessionUser,
 ): Promise<Response> {
   const payload = await body(request);
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const leaseCutoff = new Date(now.getTime() - MIGRATION_LEASE_MS).toISOString();
+
+  // Exactly one cloud session may import a legacy browser passport. This
+  // prevents two devices that once had separate local accounts with the same
+  // credentials from merging different identities into one cloud account.
+  await env.DB.prepare(
+    `UPDATE users
+     SET local_migration_session_hash = ?, local_migration_started_at = ?
+     WHERE id = ?
+       AND local_migration_completed_at IS NULL
+       AND (
+         local_migration_session_hash IS NULL
+         OR local_migration_session_hash = ?
+         OR local_migration_started_at < ?
+       )`,
+  )
+    .bind(user.session_hash, nowIso, user.id, user.session_hash, leaseCutoff)
+    .run();
+  const migrationState = await env.DB.prepare(
+    `SELECT local_migration_session_hash, local_migration_completed_at
+     FROM users WHERE id = ?`,
+  )
+    .bind(user.id)
+    .first<{
+      local_migration_session_hash: string | null;
+      local_migration_completed_at: string | null;
+    }>();
+  if (migrationState?.local_migration_completed_at) {
+    return json(request, env, {
+      ok: true,
+      migrationComplete: true,
+      missingPhotoPlaceIds: [],
+      needsProfilePhoto: false,
+    });
+  }
+  if (migrationState?.local_migration_session_hash !== user.session_hash) {
+    return json(request, env, {
+      ok: true,
+      migrationBusy: true,
+      missingPhotoPlaceIds: [],
+      needsProfilePhoto: false,
+    });
+  }
+
   const customPlaces = Array.isArray(payload.customPlaces) ? payload.customPlaces : [];
   const importedStamps = Array.isArray(payload.stamps) ? payload.stamps : [];
   const photoPlaceIds = Array.isArray(payload.photoPlaceIds)
@@ -841,8 +932,26 @@ async function handleMigration(
   const refreshed = await env.DB.prepare('SELECT photo_updated_at FROM users WHERE id = ?')
     .bind(user.id)
     .first<{ photo_updated_at: string | null }>();
+  const isFinalBatch =
+    payload.complete === true ||
+    (!Object.hasOwn(payload, 'customPlaces') &&
+      !Object.hasOwn(payload, 'stamps') &&
+      !Object.hasOwn(payload, 'photoPlaceIds'));
+  if (isFinalBatch) {
+    await env.DB.prepare(
+      `UPDATE users
+       SET local_migration_completed_at = ?,
+           local_migration_session_hash = NULL,
+           local_migration_started_at = NULL,
+           data_version = data_version + 1
+       WHERE id = ? AND local_migration_session_hash = ?`,
+    )
+      .bind(nowIso, user.id, user.session_hash)
+      .run();
+  }
   return json(request, env, {
     ok: true,
+    migrationComplete: isFinalBatch,
     missingPhotoPlaceIds,
     needsProfilePhoto: !refreshed?.photo_updated_at,
   });
@@ -925,12 +1034,12 @@ async function handlePlaces(request: Request, env: Env, path: string): Promise<R
           : null,
       created_at: new Date().toISOString(),
     };
-    await env.DB.prepare(
-      `INSERT INTO custom_places
-         (id, user_id, name, country, description, lat, lng, category, state, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-      .bind(
+    await env.DB.batch([
+      env.DB.prepare(
+        `INSERT INTO custom_places
+           (id, user_id, name, country, description, lat, lng, category, state, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(
         place.id,
         place.user_id,
         place.name,
@@ -941,8 +1050,9 @@ async function handlePlaces(request: Request, env: Env, path: string): Promise<R
         place.category,
         place.state,
         place.created_at,
-      )
-      .run();
+      ),
+      env.DB.prepare('UPDATE users SET data_version = data_version + 1 WHERE id = ?').bind(user.id),
+    ]);
     return json(request, env, { place: serializePlace(customPlace(place), null, user, origin) }, 201);
   }
 
@@ -957,11 +1067,12 @@ async function handlePlaces(request: Request, env: Env, path: string): Promise<R
     await env.PHOTOS.put(stampPhotoKey(user.id, placeId), photo.bytes, {
       httpMetadata: { contentType: photo.mime },
     });
-    await env.DB.prepare(
-      'UPDATE stamps SET photo_mime = ?, photo_updated_at = ? WHERE id = ? AND user_id = ?',
-    )
-      .bind(photo.mime, updatedAt, stamp.id, user.id)
-      .run();
+    await env.DB.batch([
+      env.DB.prepare(
+        'UPDATE stamps SET photo_mime = ?, photo_updated_at = ? WHERE id = ? AND user_id = ?',
+      ).bind(photo.mime, updatedAt, stamp.id, user.id),
+      env.DB.prepare('UPDATE users SET data_version = data_version + 1 WHERE id = ?').bind(user.id),
+    ]);
     return json(request, env, {
       stamp: serializeStamp(
         { ...stamp, photo_mime: photo.mime, photo_updated_at: updatedAt },
@@ -1061,6 +1172,7 @@ async function handlePlaces(request: Request, env: Env, path: string): Promise<R
       await env.DB.batch([
         env.DB.prepare('DELETE FROM stamps WHERE user_id = ? AND place_id = ?').bind(user.id, placeId),
         env.DB.prepare('DELETE FROM custom_places WHERE user_id = ? AND id = ?').bind(user.id, placeId),
+        env.DB.prepare('UPDATE users SET data_version = data_version + 1 WHERE id = ?').bind(user.id),
       ]);
       await env.PHOTOS.delete(stampPhotoKey(user.id, placeId));
       return json(request, env, { ok: true });

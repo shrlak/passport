@@ -39,6 +39,7 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: 'index.html',
+        cleanupOutdatedCaches: true,
         // The API must never be served from the SW cache.
         navigateFallbackDenylist: [/^\/api\//],
       },

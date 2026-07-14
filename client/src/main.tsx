@@ -5,6 +5,17 @@ import { MotionConfig } from 'framer-motion';
 import './index.css';
 import App from './App';
 
+// When a newly deployed service worker takes control, reload once so an
+// installed PWA cannot keep running an older local-only application bundle.
+if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+  let reloadingForUpdate = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloadingForUpdate) return;
+    reloadingForUpdate = true;
+    window.location.reload();
+  });
+}
+
 // A browser refresh always reopens the passport at its landing page. Client-
 // side links still preserve the selected category/place during normal use.
 const navigationEntry = performance.getEntriesByType('navigation')[0] as

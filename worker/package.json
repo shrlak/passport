@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
+    "test:sync": "node test/cross-device-sync.mjs",
     "dev": "wrangler dev",
     "deploy": "wrangler d1 migrations apply DB --remote && wrangler deploy"
   },

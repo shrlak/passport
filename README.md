@@ -11,7 +11,7 @@ A mobile-first web app where you collect digital stamps from places you visit an
 - **GPS check-in** — the Collect button unlocks only when you're physically near a place; the server re-validates the distance, so the client can't be trivially spoofed.
 - **Remote collection with photo evidence** — no GPS needed: upload a photo you already have of the place. It's accepted if the photo's own EXIF location is near the place, or (with photo verification configured) if the photo visibly shows the landmark.
 - **Your photo is the stamp** — every stamp starts as a blank frame; the first photo you add for a place — from collecting in person or via photo evidence — becomes that stamp's artwork, inside the same vintage postage-stamp frame.
-- **133 curated world landmarks** spanning Asia, Europe, the Americas, Africa, Oceania, and one iconic stop in each of the 50 U.S. states — each rendered in a shared vintage-poster frame (procedural SVG — deterministic per place, zero stored images) until you fill it with your own photo.
+- **281 curated world landmarks** spanning Asia, Europe, the Americas, Africa, and Oceania — including one iconic stop in each of the 50 U.S. states — each rendered in a shared vintage-poster frame (procedural SVG — deterministic per place, zero stored images) until you fill it with your own photo.
 - **Custom places** — add your own spots (café, trailhead, rooftop); each gets a generated stamp in the same style. Private to your account.
 - **Sign in with Google** — one-tap account creation and login via Google Identity Services, alongside classic email/password. Either way, your stamps are tied to your account and private to you.
 - **Personal passport** — 2-column stamp album: collected stamps in color, locked ones grayscale; stats for stamps and countries.
@@ -110,7 +110,7 @@ Without `GOOGLE_CLIENT_ID`/`VITE_GOOGLE_CLIENT_ID` configured, the button doesn'
 - `places` — curated seed (`is_curated=1`, `art_key` → client art registry) or user-created (`created_by`, private to creator)
 - `stamps` — `UNIQUE(user_id, place_id)`, collection time + coordinates + distance, plus an optional `photo` BLOB (`photo_mime`, `photo_updated_at`) — the user's own photo of the place, served via `GET /api/places/:id/photo`
 
-The schema is applied idempotently on boot (including additive migrations for the photo columns and `google_id` on pre-existing databases); the 133 landmarks seed automatically into an empty database.
+The schema is applied idempotently on boot (including additive migrations for the photo columns and `google_id` on pre-existing databases); the 281 landmarks seed automatically into an empty database.
 
 ## Tests
 

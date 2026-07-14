@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import type { Place } from '../types';
+import { useAuth } from './useAuth';
 
 export function usePlaces() {
+  const { syncVersion } = useAuth();
   const [places, setPlaces] = useState<Place[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,24 +20,13 @@ export function usePlaces() {
 
   useEffect(() => {
     void refresh();
-  }, [refresh]);
-
-  useEffect(() => {
-    const refreshWhenActive = () => {
-      if (document.visibilityState === 'visible') void refresh();
-    };
-    window.addEventListener('focus', refreshWhenActive);
-    document.addEventListener('visibilitychange', refreshWhenActive);
-    return () => {
-      window.removeEventListener('focus', refreshWhenActive);
-      document.removeEventListener('visibilitychange', refreshWhenActive);
-    };
-  }, [refresh]);
+  }, [refresh, syncVersion]);
 
   return { places, error, refresh };
 }
 
 export function usePlace(id: string | undefined) {
+  const { syncVersion } = useAuth();
   const [place, setPlace] = useState<Place | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,19 +43,7 @@ export function usePlace(id: string | undefined) {
 
   useEffect(() => {
     void refresh();
-  }, [refresh]);
-
-  useEffect(() => {
-    const refreshWhenActive = () => {
-      if (document.visibilityState === 'visible') void refresh();
-    };
-    window.addEventListener('focus', refreshWhenActive);
-    document.addEventListener('visibilitychange', refreshWhenActive);
-    return () => {
-      window.removeEventListener('focus', refreshWhenActive);
-      document.removeEventListener('visibilitychange', refreshWhenActive);
-    };
-  }, [refresh]);
+  }, [refresh, syncVersion]);
 
   return { place, error, refresh };
 }

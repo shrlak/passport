@@ -67,7 +67,12 @@ async function migrateVerifiedLocalAccount(
   }
   const { exportLocalAccount } = await import('./localBackend');
   const snapshot = await exportLocalAccount(username, password);
-  if (!snapshot) return result;
+  if (!snapshot) {
+    const finalized = await cloudFetch('/api/migrate', 'POST', { complete: true });
+    if (!finalized.ok) return finalized;
+    localStorage.setItem(migrationKey(user.id), new Date().toISOString());
+    return cloudFetch('/api/auth/me', 'GET');
+  }
 
   let migration: RawResponse = { status: 200, ok: true, data: {} };
   let needsProfilePhoto = false;
@@ -97,7 +102,7 @@ async function migrateVerifiedLocalAccount(
   }
   // Also handles empty passports and determines whether the cloud profile
   // photo is missing after all metadata has been merged.
-  if (!(await migrateBatch({}))) return migration;
+  if (!(await migrateBatch({ complete: true }))) return migration;
 
   if (snapshot.profilePhoto && needsProfilePhoto) {
     const uploaded = await cloudFetch('/api/auth/me/photo', 'PUT', {
@@ -122,6 +127,7 @@ async function migrateVerifiedLocalAccount(
 
 async function cloudRequest<T>(path: string, method: string, requestBody?: unknown): Promise<T> {
   let result = await cloudFetch(path, method, requestBody);
+  let shouldMigrateLocalAccount = path === '/api/auth/register' && method === 'POST';
 
   // Existing Pages users already have valid local credentials. On their first
   // cloud sign-in, transparently claim the same username and migrate that
@@ -138,7 +144,10 @@ async function cloudRequest<T>(path: string, method: string, requestBody?: unkno
       const { exportLocalAccount } = await import('./localBackend');
       if (await exportLocalAccount(credentials.username, credentials.password)) {
         const registration = await cloudFetch('/api/auth/register', 'POST', requestBody);
-        if (registration.ok) result = registration;
+        if (registration.ok) {
+          result = registration;
+          shouldMigrateLocalAccount = true;
+        }
       }
     }
   }
@@ -151,7 +160,11 @@ async function cloudRequest<T>(path: string, method: string, requestBody?: unkno
   ) {
     rememberSession(result);
     const credentials = requestBody as Record<string, unknown>;
-    if (typeof credentials.username === 'string' && typeof credentials.password === 'string') {
+    if (
+      shouldMigrateLocalAccount &&
+      typeof credentials.username === 'string' &&
+      typeof credentials.password === 'string'
+    ) {
       result = await migrateVerifiedLocalAccount(
         credentials.username,
         credentials.password,

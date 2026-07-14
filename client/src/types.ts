@@ -1,7 +1,6 @@
 export interface User {
   id: number;
-  email: string;
-  displayName: string;
+  username: string;
   createdAt: string;
 }
 
@@ -19,6 +18,8 @@ export interface Stamp {
   photoUrl: string | null;
 }
 
+export type PlaceCategory = 'landmark' | 'city' | 'us-state';
+
 export interface Place {
   id: string;
   name: string;
@@ -29,6 +30,7 @@ export interface Place {
   isCurated: boolean;
   isMine: boolean;
   artKey: string | null;
+  category: PlaceCategory;
   createdAt: string;
   stamp: Stamp | null;
 }

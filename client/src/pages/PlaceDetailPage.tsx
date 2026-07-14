@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { usePlace } from '../hooks/usePlaces';
 import { useGeo } from '../hooks/useGeolocation';
 import { useAuth } from '../hooks/useAuth';
+import { useUnits } from '../hooks/useUnits';
 import { api, ApiError, formatCollectedDate } from '../lib/api';
 import { fileToStampPhoto } from '../lib/image';
 import { extractGps } from '../lib/exif';
@@ -17,6 +18,7 @@ export default function PlaceDetailPage() {
   const { place, error, refresh } = usePlace(id);
   const { position, error: geoError, loading: locating, request } = useGeo();
   const { refreshMe } = useAuth();
+  const { units } = useUnits();
   const [collectError, setCollectError] = useState<string | null>(null);
   const [collecting, setCollecting] = useState(false);
   const [justCollected, setJustCollected] = useState(false);
@@ -62,7 +64,7 @@ export default function PlaceDetailPage() {
     } catch (err) {
       if (err instanceof ApiError && err.code === 'TOO_FAR') {
         setCollectError(
-          `You need to be within ${COLLECT_RADIUS_M} m — the server puts you ${formatDistance(Number(err.data.distanceM) || 0)} away.`,
+          `You need to be within ${formatDistance(COLLECT_RADIUS_M, units)} — the server puts you ${formatDistance(Number(err.data.distanceM) || 0, units)} away.`,
         );
       } else if (err instanceof ApiError && err.code === 'ALREADY_COLLECTED') {
         await refresh();
@@ -110,7 +112,7 @@ export default function PlaceDetailPage() {
     } catch (err) {
       if (err instanceof ApiError && err.code === 'PHOTO_TOO_FAR') {
         setProofError(
-          `That photo was taken ${formatDistance(Number(err.data.distanceM) || 0)} from here — it needs to be within ${formatDistance(PHOTO_RADIUS_M)}.`,
+          `That photo was taken ${formatDistance(Number(err.data.distanceM) || 0, units)} from here — it needs to be within ${formatDistance(PHOTO_RADIUS_M, units)}.`,
         );
       } else if (err instanceof ApiError && err.code === 'PHOTO_NO_LOCATION') {
         setProofError(
@@ -264,7 +266,8 @@ export default function PlaceDetailPage() {
               Collect stamp
             </Button>
             <p className="text-sm text-ink-soft" data-testid="too-far-line">
-              Get within {COLLECT_RADIUS_M} m — you’re {formatDistance(distance!)} away.
+              Get within {formatDistance(COLLECT_RADIUS_M, units)} — you’re{' '}
+              {formatDistance(distance!, units)} away.
             </p>
           </>
         )}
@@ -279,8 +282,8 @@ export default function PlaceDetailPage() {
             <h2 className="font-display text-lg">Been here before?</h2>
             <p className="mt-1 text-sm text-ink-soft">
               Upload a photo you took at this place. If its location info matches (within{' '}
-              {formatDistance(PHOTO_RADIUS_M)}) — or the landmark itself is recognized — the stamp
-              is yours, with your photo as the art.
+              {formatDistance(PHOTO_RADIUS_M, units)}) — or the landmark itself is recognized — the
+              stamp is yours, with your photo as the art.
             </p>
             <Button
               variant="outline"

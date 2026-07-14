@@ -46,8 +46,7 @@ function profile(): User {
   if (!user) {
     user = {
       id: 1,
-      email: 'traveler@stampquest.local',
-      displayName: 'Traveler',
+      username: 'traveler',
       createdAt: new Date().toISOString(),
     };
     store(KEYS.profile, user);
@@ -69,6 +68,8 @@ function toPlace(seedOrCustom: (typeof SEED_PLACES)[number] | CustomPlace, curat
     isCurated: curated,
     isMine: !curated,
     artKey: curated ? (seedOrCustom as (typeof SEED_PLACES)[number]).artKey : null,
+    // custom places default to 'landmark', same as the real server
+    category: curated ? (seedOrCustom as (typeof SEED_PLACES)[number]).category : 'landmark',
     createdAt: curated ? '' : (seedOrCustom as CustomPlace).createdAt,
     stamp: stamps()[seedOrCustom.id] ?? null,
   };

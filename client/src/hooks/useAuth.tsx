@@ -19,9 +19,8 @@ interface AuthContextValue {
   user: User | null;
   stats: Stats | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, displayName: string) => Promise<void>;
-  signInWithGoogle: (credential: string) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
+  signUp: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshMe: () => Promise<void>;
 }
@@ -53,22 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       stats,
       loading,
-      signIn: async (email, password) => {
-        const me = await api.post<MeResponse>('/api/auth/login', { email, password });
+      signIn: async (username, password) => {
+        const me = await api.post<MeResponse>('/api/auth/login', { username, password });
         setUser(me.user);
         setStats(me.stats);
       },
-      signUp: async (email, password, displayName) => {
-        const me = await api.post<MeResponse>('/api/auth/register', {
-          email,
-          password,
-          displayName,
-        });
-        setUser(me.user);
-        setStats(me.stats);
-      },
-      signInWithGoogle: async (credential) => {
-        const me = await api.post<MeResponse>('/api/auth/google', { credential });
+      signUp: async (username, password) => {
+        const me = await api.post<MeResponse>('/api/auth/register', { username, password });
         setUser(me.user);
         setStats(me.stats);
       },

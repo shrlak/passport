@@ -7,8 +7,8 @@ const shot = (name: string) => fileURLToPath(new URL(`screenshots/${name}.png`, 
 // Keep in sync with the curated roster in server/src/seed.ts.
 const CURATED_COUNT = 281;
 
-// One account shared across the serial suite.
-const email = `e2e-${Date.now()}@example.com`;
+// One account shared across the serial suite. Usernames are letters/digits/underscore only.
+const username = `e2e_${Date.now()}`;
 const password = 'wanderlust1';
 
 // 1×1 PNG — enough for the canvas-downscale → upload pipeline.
@@ -23,9 +23,8 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
 
   // register (auto-login, no email confirmation)
   await page.getByText('New here? Create an account').click();
-  await page.getByPlaceholder('Display name').fill('Spencer');
-  await page.getByPlaceholder('Email').fill(email);
-  await page.getByPlaceholder('Password (8+ characters)').fill(password);
+  await page.getByTestId('auth-username').fill(username);
+  await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
 
   // passport: curated stamps, all locked
@@ -35,13 +34,20 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   await expect(page.getByTestId('stats-strip')).toContainText(`0 / ${CURATED_COUNT}`);
   await page.screenshot({ path: shot('02-passport-locked'), fullPage: true });
 
-  // explore: location sorts Eiffel Tower first and in range
-  await page.getByRole('link', { name: 'Explore' }).click();
+  // landmarks tab: location sorts Eiffel Tower first and in range
+  await page.locator('nav').getByRole('link', { name: 'Landmarks' }).click();
   await page.getByTestId('enable-location').click();
-  const firstRow = page.locator('[data-testid="explore-list"] a').first();
+  const firstRow = page.locator('[data-testid="landmark-list"] a').first();
   await expect(firstRow).toContainText('Eiffel Tower');
   await expect(firstRow).toContainText('In range');
-  await page.screenshot({ path: shot('03-explore') });
+  await page.screenshot({ path: shot('03-landmarks') });
+
+  // map view renders for the same category
+  await page.getByTestId('landmark-view-map').click();
+  await expect(page.getByTestId('landmark-map')).toBeVisible();
+  await expect(page.locator('.leaflet-container')).toBeVisible();
+  await page.getByTestId('landmark-view-list').click();
+  await expect(page.getByTestId('landmark-list')).toBeVisible();
 
   // collect
   await firstRow.click();
@@ -70,13 +76,20 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   await expect(page.getByTestId('stamp-photo')).toBeVisible();
 
   // passport reflects the collection
-  await page.getByRole('link', { name: 'Passport' }).click();
+  await page.locator('nav').getByRole('link', { name: 'Passport' }).click();
   await expect(page.locator('[data-testid="stamp-card"][data-collected="true"]')).toHaveCount(1);
   await expect(page.getByTestId('stats-strip')).toContainText(`1 / ${CURATED_COUNT}`);
   await page.screenshot({ path: shot('05-passport-collected'), fullPage: true });
 
+  // cities and US states tabs are separately browsable
+  await page.locator('nav').getByRole('link', { name: 'Cities' }).click();
+  await expect(page.getByTestId('city-list')).toBeVisible();
+  await page.locator('nav').getByRole('link', { name: 'US States' }).click();
+  await expect(page.getByTestId('us-state-list')).toBeVisible();
+  await expect(page.locator('[data-testid="us-state-list"] a')).toHaveCount(50);
+
   // custom place at current location, then collect it
-  await page.getByRole('link', { name: 'Add' }).click();
+  await page.locator('nav').getByRole('link', { name: 'Add' }).click();
   await page.getByTestId('place-name').fill('Café de Flore');
   await page.getByTestId('place-country').fill('France');
   await page.getByTestId('use-my-location').click();
@@ -86,19 +99,23 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   await expect(page.getByTestId('collected-line')).toContainText('Café de Flore');
 
   // stats: 2 stamps, 1 country (both France); custom grid appears
-  await page.getByRole('link', { name: 'Passport' }).click();
+  await page.locator('nav').getByRole('link', { name: 'Passport' }).click();
   await expect(page.getByTestId('my-places-grid')).toBeVisible();
   await expect(page.getByTestId('stats-strip')).toContainText(`2 / ${CURATED_COUNT + 1}`);
-  await page.getByRole('link', { name: 'Profile' }).click();
-  await expect(page.getByText('stamps')).toBeVisible();
+
+  // profile: collected-stamps grid and units toggle
+  await page.locator('nav').getByRole('link', { name: 'Profile' }).click();
+  await expect(page.getByTestId('collected-grid')).toBeVisible();
+  await expect(page.locator('[data-testid="collected-grid"] [data-testid="stamp-card"]')).toHaveCount(2);
+  await page.getByTestId('units-imperial').click();
   await page.screenshot({ path: shot('06-profile') });
 });
 
 test('proximity is enforced server-side, not just in the UI', async ({ page, context }) => {
   // sign in fresh (also exercises the login flow)
   await page.goto('/auth');
-  await page.getByPlaceholder('Email').fill(email);
-  await page.getByPlaceholder('Password (8+ characters)').fill(password);
+  await page.getByTestId('auth-username').fill(username);
+  await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
   await expect(page.getByTestId('passport-grid')).toBeVisible();
 
@@ -130,8 +147,8 @@ test('proximity is enforced server-side, not just in the UI', async ({ page, con
 test('a photo with matching EXIF location collects a stamp remotely', async ({ page }) => {
   // still signed in as the suite account, geolocation mocked to Paris
   await page.goto('/auth');
-  await page.getByPlaceholder('Email').fill(email);
-  await page.getByPlaceholder('Password (8+ characters)').fill(password);
+  await page.getByTestId('auth-username').fill(username);
+  await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
   await expect(page.getByTestId('passport-grid')).toBeVisible();
 
@@ -183,9 +200,8 @@ test('API rejects unauthenticated requests', async ({ request }) => {
 test('custom places are private to their creator', async ({ request }) => {
   const other = await request.post('/api/auth/register', {
     data: {
-      email: `e2e-other-${Date.now()}@example.com`,
+      username: `e2e_other_${Date.now()}`,
       password: 'wanderlust2',
-      displayName: 'Other',
     },
   });
   expect(other.status()).toBe(201);

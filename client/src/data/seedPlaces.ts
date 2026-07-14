@@ -1,5 +1,7 @@
 // Curated landmarks for the static/local build (GitHub Pages demo mode).
 // Mirror of server/src/seed.ts — keep the two in sync when adding landmarks.
+export type PlaceCategory = 'landmark' | 'city' | 'us-state';
+
 export interface SeedPlace {
   id: string;
   name: string;
@@ -8,6 +10,31 @@ export interface SeedPlace {
   lat: number;
   lng: number;
   artKey: string | null;
+  category: PlaceCategory;
+}
+
+// Derives the browse-tab category from a place's slug — kept in lockstep
+// with the same lists in server/src/seed.ts's categoryFor.
+const US_STATE_CODES = new Set([
+  'al', 'ak', 'az', 'ar', 'ca', 'co', 'ct', 'de', 'fl', 'ga', 'hi', 'id', 'il', 'in', 'ia',
+  'ks', 'ky', 'la', 'me', 'md', 'ma', 'mi', 'mn', 'ms', 'mo', 'mt', 'ne', 'nv', 'nh', 'nj',
+  'nm', 'ny', 'nc', 'nd', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'vt',
+  'va', 'wa', 'wv', 'wi', 'wy',
+]);
+const CITY_SLUGS = new Set([
+  'sweden-gamlastan', 'austria-hallstatt', 'croatia-dubrovnik', 'cuba-havana',
+  'colombia-cartagena', 'montenegro-kotor', 'lithuania-vilnius', 'latvia-riga',
+  'estonia-tallinn', 'luxembourg-oldcity', 'malta-valletta', 'albania-berat',
+  'southkorea-bukchon', 'vietnam-hoian', 'laos-luangprabang', 'morocco-chefchaouen',
+  'tunisia-sidiboussaid', 'algeria-casbah', 'canada-oldquebec', 'elsalvador-ataco',
+  'uruguay-colonia', 'puertorico-oldsanjuan', 'suriname-paramaribo', 'vanuatu-portvila',
+  'tonga-nukualofa', 'solomonislands-honiara', 'newcaledonia-noumea', 'italy-amalfi',
+]);
+function categoryFor(slug: string): PlaceCategory {
+  const stateMatch = /^us-([a-z]{2})$/.exec(slug);
+  if (stateMatch && US_STATE_CODES.has(stateMatch[1])) return 'us-state';
+  if (CITY_SLUGS.has(slug)) return 'city';
+  return 'landmark';
 }
 
 // Stable ids so stamp art (hashed on id) and collected stamps survive reloads.
@@ -18,7 +45,16 @@ const p = (
   lat: number,
   lng: number,
   description: string,
-): SeedPlace => ({ id: `seed-${artKey}`, artKey, name, country, lat, lng, description });
+): SeedPlace => ({
+  id: `seed-${artKey}`,
+  artKey,
+  name,
+  country,
+  lat,
+  lng,
+  description,
+  category: categoryFor(artKey),
+});
 
 // Places without hand-drawn art (StampSVG falls back to a generic motif for
 // these); id is an explicit slug instead of being derived from artKey.
@@ -29,7 +65,16 @@ const q = (
   lat: number,
   lng: number,
   description: string,
-): SeedPlace => ({ id: `seed-${id}`, artKey: null, name, country, lat, lng, description });
+): SeedPlace => ({
+  id: `seed-${id}`,
+  artKey: null,
+  name,
+  country,
+  lat,
+  lng,
+  description,
+  category: categoryFor(id),
+});
 
 export const SEED_PLACES: SeedPlace[] = [
   p('eiffel', 'Eiffel Tower', 'France', 48.8584, 2.2945, 'Iron lattice reaching for the Paris sky since 1889 — the city of light’s eternal exclamation mark.'),

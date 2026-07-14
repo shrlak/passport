@@ -34,15 +34,12 @@ if (!stampCols.includes('photo')) {
     ALTER TABLE stamps ADD COLUMN photo_updated_at TEXT;`);
 }
 
-// Additive migration for databases created before Google sign-in existed.
-// SQLite can't add a UNIQUE column via ALTER TABLE, so add it plain and
-// enforce uniqueness with a separate index (equivalent for query purposes).
-const userCols = (db.prepare('PRAGMA table_info(users)').all() as { name: string }[]).map(
+// Additive migration for databases created before place categories existed.
+const placeCols = (db.prepare('PRAGMA table_info(places)').all() as { name: string }[]).map(
   (c) => c.name,
 );
-if (!userCols.includes('google_id')) {
-  db.exec(`ALTER TABLE users ADD COLUMN google_id TEXT;
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);`);
+if (!placeCols.includes('category')) {
+  db.exec(`ALTER TABLE places ADD COLUMN category TEXT NOT NULL DEFAULT 'landmark';`);
 }
 
 const placeCount = db
@@ -51,12 +48,12 @@ const placeCount = db
 
 if (placeCount.n === 0) {
   const insert = db.prepare(
-    `INSERT INTO places (id, name, country, description, lat, lng, is_curated, art_key)
-     VALUES (?, ?, ?, ?, ?, ?, 1, ?)`,
+    `INSERT INTO places (id, name, country, description, lat, lng, is_curated, art_key, category)
+     VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)`,
   );
   const seedAll = db.transaction(() => {
     for (const p of CURATED_PLACES) {
-      insert.run(randomUUID(), p.name, p.country, p.description, p.lat, p.lng, p.artKey);
+      insert.run(randomUUID(), p.name, p.country, p.description, p.lat, p.lng, p.artKey, p.category);
     }
   });
   seedAll();
@@ -65,10 +62,8 @@ if (placeCount.n === 0) {
 
 export interface UserRow {
   id: number;
-  email: string;
-  password_hash: string | null;
-  google_id: string | null;
-  display_name: string;
+  username: string;
+  password_hash: string;
   created_at: string;
 }
 
@@ -82,6 +77,7 @@ export interface PlaceRow {
   is_curated: number;
   created_by: number | null;
   art_key: string | null;
+  category: string;
   created_at: string;
 }
 

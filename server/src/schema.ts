@@ -3,12 +3,9 @@
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY,
-  email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-  password_hash TEXT,
-  google_id TEXT UNIQUE,
-  display_name TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  CHECK (password_hash IS NOT NULL OR google_id IS NOT NULL)
+  username TEXT NOT NULL UNIQUE COLLATE NOCASE CHECK (length(username) BETWEEN 3 AND 24),
+  password_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -29,6 +26,7 @@ CREATE TABLE IF NOT EXISTS places (
   is_curated INTEGER NOT NULL DEFAULT 0,
   created_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
   art_key TEXT,
+  category TEXT NOT NULL DEFAULT 'landmark' CHECK (category IN ('landmark', 'city', 'us-state')),
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   CHECK (is_curated = (created_by IS NULL))
 );

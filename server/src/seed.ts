@@ -1,6 +1,8 @@
 // Curated landmark roster. art_key maps to the client-side silhouette registry
 // (client/src/art/landmarks.ts) — keep the two in sync when adding landmarks.
 // Also mirrored in client/src/data/seedPlaces.ts for the static demo build.
+export type PlaceCategory = 'landmark' | 'city' | 'us-state';
+
 export interface SeedPlace {
   name: string;
   country: string;
@@ -8,6 +10,7 @@ export interface SeedPlace {
   lat: number;
   lng: number;
   artKey: string | null;
+  category: PlaceCategory;
 }
 
 export const CURATED_PLACES: SeedPlace[] = [
@@ -18,6 +21,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 48.8584,
     lng: 2.2945,
     artKey: 'eiffel',
+    category: 'landmark',
   },
   {
     name: 'Statue of Liberty',
@@ -26,6 +30,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 40.6892,
     lng: -74.0445,
     artKey: 'liberty',
+    category: 'landmark',
   },
   {
     name: 'Big Ben',
@@ -34,6 +39,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 51.5007,
     lng: -0.1246,
     artKey: 'bigben',
+    category: 'landmark',
   },
   {
     name: 'Colosseum',
@@ -42,6 +48,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.8902,
     lng: 12.4922,
     artKey: 'colosseum',
+    category: 'landmark',
   },
   {
     name: 'Taj Mahal',
@@ -50,6 +57,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 27.1751,
     lng: 78.0421,
     artKey: 'tajmahal',
+    category: 'landmark',
   },
   {
     name: 'Great Pyramid of Giza',
@@ -58,6 +66,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 29.9792,
     lng: 31.1342,
     artKey: 'pyramids',
+    category: 'landmark',
   },
   {
     name: 'Sydney Opera House',
@@ -66,6 +75,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -33.8568,
     lng: 151.2153,
     artKey: 'operahouse',
+    category: 'landmark',
   },
   {
     name: 'Golden Gate Bridge',
@@ -74,6 +84,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.8199,
     lng: -122.4783,
     artKey: 'goldengate',
+    category: 'landmark',
   },
   {
     name: 'Christ the Redeemer',
@@ -82,6 +93,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -22.9519,
     lng: -43.2105,
     artKey: 'redeemer',
+    category: 'landmark',
   },
   {
     name: 'Machu Picchu',
@@ -90,6 +102,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -13.1631,
     lng: -72.545,
     artKey: 'machu',
+    category: 'landmark',
   },
   {
     name: 'Mount Fuji',
@@ -98,6 +111,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 35.3606,
     lng: 138.7274,
     artKey: 'fuji',
+    category: 'landmark',
   },
   {
     name: 'Fushimi Inari Shrine',
@@ -106,6 +120,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 34.9671,
     lng: 135.7727,
     artKey: 'torii',
+    category: 'landmark',
   },
   {
     name: 'Sagrada Família',
@@ -114,6 +129,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.4036,
     lng: 2.1744,
     artKey: 'sagrada',
+    category: 'landmark',
   },
   {
     name: 'Brandenburg Gate',
@@ -122,6 +138,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 52.5163,
     lng: 13.3777,
     artKey: 'brandenburg',
+    category: 'landmark',
   },
   {
     name: 'Burj Khalifa',
@@ -130,6 +147,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 25.1972,
     lng: 55.2744,
     artKey: 'burj',
+    category: 'landmark',
   },
   {
     name: 'Petra',
@@ -138,6 +156,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 30.3285,
     lng: 35.4444,
     artKey: 'petra',
+    category: 'landmark',
   },
   {
     name: 'Angkor Wat',
@@ -146,6 +165,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 13.4125,
     lng: 103.867,
     artKey: 'angkor',
+    category: 'landmark',
   },
   {
     name: 'Great Wall at Mutianyu',
@@ -154,6 +174,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 40.4319,
     lng: 116.5704,
     artKey: 'greatwall',
+    category: 'landmark',
   },
   {
     name: 'Moai of Rapa Nui',
@@ -162,6 +183,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -27.1258,
     lng: -109.2769,
     artKey: 'moai',
+    category: 'landmark',
   },
   {
     name: 'Table Mountain',
@@ -170,6 +192,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -33.9628,
     lng: 18.4098,
     artKey: 'tablemountain',
+    category: 'landmark',
   },
   {
     name: 'Niagara Falls',
@@ -178,6 +201,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 43.0962,
     lng: -79.0377,
     artKey: 'niagara',
+    category: 'landmark',
   },
   {
     name: 'Oia, Santorini',
@@ -186,6 +210,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 36.4618,
     lng: 25.3753,
     artKey: 'santorini',
+    category: 'landmark',
   },
   {
     name: 'Neuschwanstein Castle',
@@ -194,6 +219,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 47.5576,
     lng: 10.7498,
     artKey: 'neuschwanstein',
+    category: 'landmark',
   },
   {
     name: 'Acropolis of Athens',
@@ -202,6 +228,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.9715,
     lng: 23.7267,
     artKey: 'acropolis',
+    category: 'landmark',
   },
   {
     name: 'Gyeongbokgung Palace',
@@ -210,6 +237,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.5796,
     lng: 126.977,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Wat Arun',
@@ -218,6 +246,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 13.7437,
     lng: 100.4888,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Ha Long Bay',
@@ -226,6 +255,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 20.9101,
     lng: 107.1839,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Borobudur',
@@ -234,6 +264,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -7.6079,
     lng: 110.2038,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Chocolate Hills',
@@ -242,6 +273,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 9.8167,
     lng: 124.1667,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Petronas Towers',
@@ -250,6 +282,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 3.1579,
     lng: 101.7116,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Marina Bay Sands',
@@ -258,6 +291,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 1.2834,
     lng: 103.8607,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Boudhanath Stupa',
@@ -266,6 +300,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 27.7215,
     lng: 85.362,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Sigiriya',
@@ -274,6 +309,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 7.957,
     lng: 80.7603,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Shwedagon Pagoda',
@@ -282,6 +318,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 16.7983,
     lng: 96.1495,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Genghis Khan Equestrian Statue',
@@ -290,6 +327,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 47.8467,
     lng: 106.9633,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Hagia Sophia',
@@ -298,6 +336,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.0086,
     lng: 28.9802,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Western Wall',
@@ -306,6 +345,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 31.7767,
     lng: 35.2345,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Masjid al-Haram',
@@ -314,6 +354,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 21.4225,
     lng: 39.8262,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Museum of Islamic Art',
@@ -322,6 +363,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 25.2949,
     lng: 51.539,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Saint Basil’s Cathedral',
@@ -330,6 +372,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 55.7525,
     lng: 37.6231,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Bayterek Tower',
@@ -338,6 +381,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 51.1284,
     lng: 71.4306,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Zaanse Schans Windmills',
@@ -346,6 +390,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 52.4747,
     lng: 4.8172,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Belém Tower',
@@ -354,6 +399,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 38.6916,
     lng: -9.216,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Cliffs of Moher',
@@ -362,6 +408,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 52.9715,
     lng: -9.4309,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Gullfoss',
@@ -370,6 +417,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 64.3271,
     lng: -20.1199,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Preikestolen',
@@ -378,6 +426,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 58.9866,
     lng: 6.1902,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Gamla Stan',
@@ -386,6 +435,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 59.3251,
     lng: 18.0711,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'The Little Mermaid',
@@ -394,6 +444,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 55.6929,
     lng: 12.5993,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Helsinki Cathedral',
@@ -402,6 +453,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 60.1699,
     lng: 24.9525,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Matterhorn',
@@ -410,6 +462,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 45.9763,
     lng: 7.6586,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Hallstatt',
@@ -418,6 +471,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 47.5622,
     lng: 13.6493,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Charles Bridge',
@@ -426,6 +480,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 50.0865,
     lng: 14.4114,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Hungarian Parliament Building',
@@ -434,6 +489,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 47.507,
     lng: 19.0458,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Wawel Castle',
@@ -442,6 +498,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 50.0544,
     lng: 19.9356,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Dubrovnik Old Town',
@@ -450,6 +507,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 42.6407,
     lng: 18.1077,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Grand Place',
@@ -458,6 +516,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 50.8467,
     lng: 4.3525,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Edinburgh Castle',
@@ -466,6 +525,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 55.9486,
     lng: -3.1999,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'St. Peter’s Basilica',
@@ -474,6 +534,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.9022,
     lng: 12.4539,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Monte Carlo Casino',
@@ -482,6 +543,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 43.7396,
     lng: 7.4308,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'CN Tower',
@@ -490,6 +552,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 43.6426,
     lng: -79.3871,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Banff National Park',
@@ -498,6 +561,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 51.4968,
     lng: -115.9281,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Chichén Itzá',
@@ -506,6 +570,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 20.6843,
     lng: -88.5678,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Tikal',
@@ -514,6 +579,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 17.222,
     lng: -89.6237,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Old Havana',
@@ -522,6 +588,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 23.1367,
     lng: -82.3589,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Dunn’s River Falls',
@@ -530,6 +597,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 18.4139,
     lng: -77.1319,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Iguazu Falls',
@@ -538,6 +606,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -25.6953,
     lng: -54.4367,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Torres del Paine',
@@ -546,6 +615,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -50.9423,
     lng: -73.4068,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Salar de Uyuni',
@@ -554,6 +624,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -20.1338,
     lng: -67.4891,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Cartagena Old Town',
@@ -562,6 +633,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 10.4236,
     lng: -75.5482,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Galápagos Islands',
@@ -570,6 +642,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -0.9538,
     lng: -90.9656,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Angel Falls',
@@ -578,6 +651,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 5.9701,
     lng: -62.5362,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Jemaa el-Fnaa',
@@ -586,6 +660,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 31.6258,
     lng: -7.9891,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Maasai Mara',
@@ -594,6 +669,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -1.5,
     lng: 35.1,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Mount Kilimanjaro',
@@ -602,6 +678,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -3.0674,
     lng: 37.3556,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Victoria Falls',
@@ -610,6 +687,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -17.9243,
     lng: 25.8572,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Sossusvlei',
@@ -618,6 +696,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -24.7333,
     lng: 15.3,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Zuma Rock',
@@ -626,6 +705,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 9.1211,
     lng: 7.2062,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Lalibela Rock Churches',
@@ -634,6 +714,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 12.0316,
     lng: 39.0473,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Amphitheatre of El Jem',
@@ -642,6 +723,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 35.2967,
     lng: 10.705,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Okavango Delta',
@@ -650,6 +732,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -19.2833,
     lng: 22.9833,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Cape Coast Castle',
@@ -658,6 +741,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 5.1053,
     lng: -1.2466,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Milford Sound',
@@ -666,6 +750,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -44.671,
     lng: 167.925,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Bora Bora',
@@ -674,6 +759,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -16.5004,
     lng: -151.7415,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'U.S. Space & Rocket Center',
@@ -682,6 +768,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 34.7196,
     lng: -86.6503,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Denali',
@@ -690,6 +777,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 63.0692,
     lng: -151.007,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Grand Canyon',
@@ -698,6 +786,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 36.1069,
     lng: -112.1129,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Hot Springs National Park',
@@ -706,6 +795,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 34.5037,
     lng: -93.0552,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Yosemite Valley',
@@ -714,6 +804,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.7459,
     lng: -119.5936,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Rocky Mountain National Park',
@@ -722,6 +813,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 40.3428,
     lng: -105.6836,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Mystic Seaport',
@@ -730,6 +822,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.3712,
     lng: -71.9662,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Rehoboth Beach Boardwalk',
@@ -738,6 +831,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 38.7209,
     lng: -75.076,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Cinderella Castle',
@@ -746,6 +840,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 28.4177,
     lng: -81.5812,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Stone Mountain',
@@ -754,6 +849,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 33.8055,
     lng: -84.1455,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Diamond Head',
@@ -762,6 +858,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 21.262,
     lng: -157.8058,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Shoshone Falls',
@@ -770,6 +867,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 42.5946,
     lng: -114.4001,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Cloud Gate',
@@ -778,6 +876,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.8827,
     lng: -87.6233,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Indianapolis Motor Speedway',
@@ -786,6 +885,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 39.795,
     lng: -86.2347,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Field of Dreams',
@@ -794,6 +894,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 42.493,
     lng: -91.0182,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Monument Rocks',
@@ -802,6 +903,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 38.7909,
     lng: -100.748,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Mammoth Cave',
@@ -810,6 +912,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.1862,
     lng: -86.1,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'French Quarter',
@@ -818,6 +921,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 29.9584,
     lng: -90.0644,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Acadia National Park',
@@ -826,6 +930,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 44.3386,
     lng: -68.2733,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Fort McHenry',
@@ -834,6 +939,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 39.2627,
     lng: -76.5797,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Bunker Hill Monument',
@@ -842,6 +948,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 42.3763,
     lng: -71.0611,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Mackinac Bridge',
@@ -850,6 +957,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 45.818,
     lng: -84.7278,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Split Rock Lighthouse',
@@ -858,6 +966,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 47.2,
     lng: -91.3675,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Vicksburg National Military Park',
@@ -866,6 +975,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 32.3466,
     lng: -90.857,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Gateway Arch',
@@ -874,6 +984,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 38.6247,
     lng: -90.1848,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Glacier National Park',
@@ -882,6 +993,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 48.696,
     lng: -113.718,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Chimney Rock',
@@ -890,6 +1002,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.7027,
     lng: -103.348,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Hoover Dam',
@@ -898,6 +1011,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 36.0161,
     lng: -114.7377,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Mount Washington',
@@ -906,6 +1020,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 44.2706,
     lng: -71.3033,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Atlantic City Boardwalk',
@@ -914,6 +1029,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 39.3643,
     lng: -74.4229,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'White Sands',
@@ -922,6 +1038,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 32.7871,
     lng: -106.3255,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Empire State Building',
@@ -930,6 +1047,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 40.7484,
     lng: -73.9857,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Wright Brothers National Memorial',
@@ -938,6 +1056,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 36.0128,
     lng: -75.6707,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Theodore Roosevelt National Park',
@@ -946,6 +1065,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 46.9789,
     lng: -103.5382,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Rock & Roll Hall of Fame',
@@ -954,6 +1074,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.5087,
     lng: -81.695,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Oklahoma City National Memorial',
@@ -962,6 +1083,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 35.473,
     lng: -97.5171,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Crater Lake',
@@ -970,6 +1092,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 42.9446,
     lng: -122.109,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Liberty Bell',
@@ -978,6 +1101,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 39.9496,
     lng: -75.1503,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'The Breakers',
@@ -986,6 +1110,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.4694,
     lng: -71.2999,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Fort Sumter',
@@ -994,6 +1119,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 32.7523,
     lng: -79.8748,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Mount Rushmore',
@@ -1002,6 +1128,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 43.8791,
     lng: -103.4591,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Great Smoky Mountains',
@@ -1010,6 +1137,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 35.6118,
     lng: -83.4895,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'The Alamo',
@@ -1018,6 +1146,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 29.426,
     lng: -98.4861,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Arches National Park',
@@ -1026,6 +1155,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 38.7331,
     lng: -109.5925,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Vermont State House',
@@ -1034,6 +1164,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 44.2601,
     lng: -72.5754,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Monticello',
@@ -1042,6 +1173,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 38.0084,
     lng: -78.4529,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Space Needle',
@@ -1050,6 +1182,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 47.6205,
     lng: -122.3493,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'New River Gorge Bridge',
@@ -1058,6 +1191,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 38.0676,
     lng: -81.0778,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Wisconsin Dells',
@@ -1066,6 +1200,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 43.6274,
     lng: -89.771,
     artKey: null,
+    category: 'us-state',
   },
   {
     name: 'Old Faithful',
@@ -1074,6 +1209,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 44.4605,
     lng: -110.8281,
     artKey: null,
+    category: 'us-state',
   },
 
   // Additional world landmarks (Europe, Asia, Africa, the Americas, Oceania).
@@ -1084,6 +1220,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 48.6361,
     lng: -1.5115,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Palace of Versailles',
@@ -1092,6 +1229,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 48.8049,
     lng: 2.1204,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Louvre Museum',
@@ -1100,6 +1238,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 48.8606,
     lng: 2.3376,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Leaning Tower of Pisa',
@@ -1108,6 +1247,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 43.723,
     lng: 10.3966,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Piazza San Marco',
@@ -1116,6 +1256,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 45.4341,
     lng: 12.3388,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Positano',
@@ -1124,6 +1265,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 40.628,
     lng: 14.4849,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Alhambra',
@@ -1132,6 +1274,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.176,
     lng: -3.5883,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Park Güell',
@@ -1140,6 +1283,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.4145,
     lng: 2.1527,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Stonehenge',
@@ -1148,6 +1292,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 51.1789,
     lng: -1.8262,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Tower Bridge',
@@ -1156,6 +1301,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 51.5055,
     lng: -0.0754,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Cologne Cathedral',
@@ -1164,6 +1310,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 50.9413,
     lng: 6.9583,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Meteora',
@@ -1172,6 +1319,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 39.7217,
     lng: 21.6306,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Cappadocia',
@@ -1180,6 +1328,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 38.6431,
     lng: 34.8289,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Pamukkale',
@@ -1188,6 +1337,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.9203,
     lng: 29.1211,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Hermitage Museum',
@@ -1196,6 +1346,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 59.9398,
     lng: 30.3146,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Kyiv Pechersk Lavra',
@@ -1204,6 +1355,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 50.4344,
     lng: 30.557,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Bran Castle',
@@ -1212,6 +1364,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 45.5149,
     lng: 25.3672,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Rila Monastery',
@@ -1220,6 +1373,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 42.1333,
     lng: 23.34,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Lake Bled',
@@ -1228,6 +1382,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 46.3683,
     lng: 14.1146,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Kotor Old Town',
@@ -1236,6 +1391,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 42.4247,
     lng: 18.7712,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Belgrade Fortress',
@@ -1244,6 +1400,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 44.8225,
     lng: 20.4487,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Stari Most',
@@ -1252,6 +1409,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 43.3373,
     lng: 17.8151,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Lake Ohrid',
@@ -1260,6 +1418,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.1231,
     lng: 20.7969,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Vilnius Old Town',
@@ -1268,6 +1427,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 54.6872,
     lng: 25.2797,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Riga Old Town',
@@ -1276,6 +1436,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 56.9496,
     lng: 24.1052,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Tallinn Old Town',
@@ -1284,6 +1445,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 59.437,
     lng: 24.7454,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Luxembourg Old City',
@@ -1292,6 +1454,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 49.6116,
     lng: 6.1319,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Valletta',
@@ -1300,6 +1463,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 35.8989,
     lng: 14.5146,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Kourion',
@@ -1308,6 +1472,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 34.6636,
     lng: 32.8869,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Berat',
@@ -1316,6 +1481,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 40.7058,
     lng: 19.9522,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Forbidden City',
@@ -1324,6 +1490,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 39.9163,
     lng: 116.3972,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Zhangjiajie',
@@ -1332,6 +1499,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 29.3167,
     lng: 110.4792,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Terracotta Army',
@@ -1340,6 +1508,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 34.3853,
     lng: 109.2734,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Kinkaku-ji',
@@ -1348,6 +1517,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 35.0394,
     lng: 135.7292,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Shibuya Crossing',
@@ -1356,6 +1526,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 35.6595,
     lng: 139.7005,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Osaka Castle',
@@ -1364,6 +1535,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 34.6873,
     lng: 135.5262,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Amber Fort',
@@ -1372,6 +1544,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 26.9855,
     lng: 75.8513,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Varanasi Ghats',
@@ -1380,6 +1553,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 25.3109,
     lng: 83.0107,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Hawa Mahal',
@@ -1388,6 +1562,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 26.9239,
     lng: 75.8267,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Seongsan Ilchulbong',
@@ -1396,6 +1571,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 33.4587,
     lng: 126.9425,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Bukchon Hanok Village',
@@ -1404,6 +1580,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.5826,
     lng: 126.9831,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Uluwatu Temple',
@@ -1412,6 +1589,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -8.8291,
     lng: 115.0849,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Komodo National Park',
@@ -1420,6 +1598,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -8.5455,
     lng: 119.4894,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Grand Palace',
@@ -1428,6 +1607,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 13.75,
     lng: 100.4913,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Phi Phi Islands',
@@ -1436,6 +1616,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 7.7407,
     lng: 98.7784,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Hoi An Ancient Town',
@@ -1444,6 +1625,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 15.8801,
     lng: 108.338,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Luang Prabang',
@@ -1452,6 +1634,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 19.8845,
     lng: 102.1348,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Ahsan Manzil',
@@ -1460,6 +1643,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 23.7086,
     lng: 90.4058,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Badshahi Mosque',
@@ -1468,6 +1652,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 31.588,
     lng: 74.31,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Paro Taktsang',
@@ -1476,6 +1661,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 27.4919,
     lng: 89.3636,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Issyk-Kul Lake',
@@ -1484,6 +1670,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 42.45,
     lng: 77.2,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Registan',
@@ -1492,6 +1679,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 39.6542,
     lng: 66.975,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Tatev Monastery',
@@ -1500,6 +1688,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 39.3789,
     lng: 46.25,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Gergeti Trinity Church',
@@ -1508,6 +1697,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 42.6625,
     lng: 44.6183,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Flame Towers',
@@ -1516,6 +1706,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 40.3592,
     lng: 49.8419,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Persepolis',
@@ -1524,6 +1715,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 29.9356,
     lng: 52.8916,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Sultan Qaboos Grand Mosque',
@@ -1532,6 +1724,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 23.5225,
     lng: 58.4914,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Baalbek',
@@ -1540,6 +1733,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 34.0064,
     lng: 36.2039,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Taipei 101',
@@ -1548,6 +1742,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 25.034,
     lng: 121.5645,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Victoria Peak',
@@ -1556,6 +1751,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 22.2759,
     lng: 114.1455,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Maldives Atolls',
@@ -1564,6 +1760,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 4.1755,
     lng: 73.5093,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Sultan Omar Ali Saifuddien Mosque',
@@ -1572,6 +1769,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 4.8903,
     lng: 114.9423,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Abu Simbel',
@@ -1580,6 +1778,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 22.3372,
     lng: 31.6258,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Karnak Temple',
@@ -1588,6 +1787,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 25.7188,
     lng: 32.6573,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Chefchaouen',
@@ -1596,6 +1796,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 35.1688,
     lng: -5.2636,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Erg Chebbi Dunes',
@@ -1604,6 +1805,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 31.15,
     lng: -3.98,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Sidi Bou Said',
@@ -1612,6 +1814,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 36.8703,
     lng: 10.3417,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Casbah of Algiers',
@@ -1620,6 +1823,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 36.785,
     lng: 3.0608,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Meroe Pyramids',
@@ -1628,6 +1832,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 16.9377,
     lng: 33.7519,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Volcanoes National Park',
@@ -1636,6 +1841,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -1.4795,
     lng: 29.5,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Bwindi Impenetrable Forest',
@@ -1644,6 +1850,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -1.03,
     lng: 29.6667,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Great Zimbabwe',
@@ -1652,6 +1859,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -20.268,
     lng: 30.9337,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Bazaruto Archipelago',
@@ -1660,6 +1868,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -21.65,
     lng: 35.4667,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Avenue of the Baobabs',
@@ -1668,6 +1877,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -20.25,
     lng: 44.4167,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Gorée Island',
@@ -1676,6 +1886,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 14.6672,
     lng: -17.3981,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Basilica of Our Lady of Peace',
@@ -1684,6 +1895,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 6.6989,
     lng: -5.2894,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Great Mosque of Djenné',
@@ -1692,6 +1904,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 13.9058,
     lng: -4.555,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Anse Source d’Argent',
@@ -1700,6 +1913,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -4.3742,
     lng: 55.8319,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Le Morne Brabant',
@@ -1708,6 +1922,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -20.4522,
     lng: 57.3122,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Fogo Volcano',
@@ -1716,6 +1931,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 14.95,
     lng: -24.35,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Virunga National Park',
@@ -1724,6 +1940,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -1.5197,
     lng: 29.25,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Lake Assal',
@@ -1732,6 +1949,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 11.658,
     lng: 42.4142,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Lake Malawi',
@@ -1740,6 +1958,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -12,
     lng: 34.75,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Mlilwane Wildlife Sanctuary',
@@ -1748,6 +1967,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -26.4667,
     lng: 31.2,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Lake Louise',
@@ -1756,6 +1976,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 51.4254,
     lng: -116.1773,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Old Québec',
@@ -1764,6 +1985,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 46.8127,
     lng: -71.2044,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Teotihuacan',
@@ -1772,6 +1994,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 19.6925,
     lng: -98.8438,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Tulum Ruins',
@@ -1780,6 +2003,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 20.2145,
     lng: -87.4295,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Great Blue Hole',
@@ -1788,6 +2012,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 17.316,
     lng: -87.535,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Arenal Volcano',
@@ -1796,6 +2021,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 10.463,
     lng: -84.703,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Panama Canal',
@@ -1804,6 +2030,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 8.9943,
     lng: -79.599,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Copan Ruins',
@@ -1812,6 +2039,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 14.8372,
     lng: -89.1428,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Ometepe Island',
@@ -1820,6 +2048,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 11.5,
     lng: -85.5833,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Ataco',
@@ -1828,6 +2057,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 13.8667,
     lng: -89.8167,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Sugarloaf Mountain',
@@ -1836,6 +2066,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -22.9492,
     lng: -43.1545,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Amazon Rainforest',
@@ -1844,6 +2075,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -3.119,
     lng: -60.0217,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Perito Moreno Glacier',
@@ -1852,6 +2084,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -50.4967,
     lng: -73.1367,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Recoleta Cemetery',
@@ -1860,6 +2093,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -34.5875,
     lng: -58.3931,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Atacama Desert',
@@ -1868,6 +2102,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -22.911,
     lng: -68.1997,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Rainbow Mountain',
@@ -1876,6 +2111,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -13.872,
     lng: -71.3072,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Lake Titicaca',
@@ -1884,6 +2120,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -15.8402,
     lng: -70.0219,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Colonia del Sacramento',
@@ -1892,6 +2129,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -34.4718,
     lng: -57.8442,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Jesuit Missions of Trinidad',
@@ -1900,6 +2138,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -27.0264,
     lng: -55.6067,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Punta Cana',
@@ -1908,6 +2147,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 18.5601,
     lng: -68.3725,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Old San Juan',
@@ -1916,6 +2156,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 18.4663,
     lng: -66.1057,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Exuma Cays',
@@ -1924,6 +2165,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 23.5167,
     lng: -75.8333,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Pitch Lake',
@@ -1932,6 +2174,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 10.24,
     lng: -61.635,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Harrison’s Cave',
@@ -1940,6 +2183,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 13.1939,
     lng: -59.5661,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Kaieteur Falls',
@@ -1948,6 +2192,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 5.1706,
     lng: -59.4939,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Paramaribo Historic Inner City',
@@ -1956,6 +2201,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 5.852,
     lng: -55.2038,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Times Square',
@@ -1964,6 +2210,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 40.758,
     lng: -73.9855,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Central Park',
@@ -1972,6 +2219,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 40.7829,
     lng: -73.9654,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Washington Monument',
@@ -1980,6 +2228,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 38.8895,
     lng: -77.0353,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Lincoln Memorial',
@@ -1988,6 +2237,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 38.8893,
     lng: -77.0502,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Las Vegas Strip',
@@ -1996,6 +2246,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 36.1147,
     lng: -115.1728,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Hollywood Sign',
@@ -2004,6 +2255,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 34.1341,
     lng: -118.3215,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Zion National Park',
@@ -2012,6 +2264,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.2982,
     lng: -113.0263,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Bryce Canyon',
@@ -2020,6 +2273,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.593,
     lng: -112.1871,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Sequoia National Park',
@@ -2028,6 +2282,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 36.4864,
     lng: -118.5658,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Antelope Canyon',
@@ -2036,6 +2291,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 36.8619,
     lng: -111.3743,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Mount Rainier',
@@ -2044,6 +2300,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 46.8523,
     lng: -121.7603,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Everglades National Park',
@@ -2052,6 +2309,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 25.2866,
     lng: -80.8987,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Multnomah Falls',
@@ -2060,6 +2318,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 45.5762,
     lng: -122.1158,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Carlsbad Caverns',
@@ -2068,6 +2327,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 32.1479,
     lng: -104.5567,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Badlands National Park',
@@ -2076,6 +2336,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 43.8554,
     lng: -102.3397,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Redwood National Park',
@@ -2084,6 +2345,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 41.2132,
     lng: -124.0046,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'USS Arizona Memorial',
@@ -2092,6 +2354,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 21.3649,
     lng: -157.95,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Kennedy Space Center',
@@ -2100,6 +2363,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 28.5729,
     lng: -80.649,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Alcatraz Island',
@@ -2108,6 +2372,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 37.8267,
     lng: -122.423,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Brooklyn Bridge',
@@ -2116,6 +2381,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 40.7061,
     lng: -73.9969,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Uluru',
@@ -2124,6 +2390,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -25.3444,
     lng: 131.0369,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Great Barrier Reef',
@@ -2132,6 +2399,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -20.27,
     lng: 148.9,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Twelve Apostles',
@@ -2140,6 +2408,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -38.6662,
     lng: 143.1044,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Bondi Beach',
@@ -2148,6 +2417,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -33.8908,
     lng: 151.2743,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Hobbiton',
@@ -2156,6 +2426,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -37.8722,
     lng: 175.682,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Tongariro National Park',
@@ -2164,6 +2435,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -39.142,
     lng: 175.6428,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Mamanuca Islands',
@@ -2172,6 +2444,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -17.67,
     lng: 177.1,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Port Vila',
@@ -2180,6 +2453,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -17.7333,
     lng: 168.3273,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Kokoda Track',
@@ -2188,6 +2462,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -8.7,
     lng: 147.7333,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'To Sua Ocean Trench',
@@ -2196,6 +2471,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -13.9333,
     lng: -171.7167,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Nuku’alofa',
@@ -2204,6 +2480,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -21.1393,
     lng: -175.2049,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Rock Islands',
@@ -2212,6 +2489,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 7.25,
     lng: 134.3833,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Bikini Atoll',
@@ -2220,6 +2498,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 11.5833,
     lng: 165.3833,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Nan Madol',
@@ -2228,6 +2507,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 6.8419,
     lng: 158.3339,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Honiara',
@@ -2236,6 +2516,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -9.4333,
     lng: 159.95,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Aitutaki Lagoon',
@@ -2244,6 +2525,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -18.83,
     lng: -159.77,
     artKey: null,
+    category: 'landmark',
   },
   {
     name: 'Nouméa',
@@ -2252,6 +2534,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: -22.2758,
     lng: 166.4581,
     artKey: null,
+    category: 'city',
   },
   {
     name: 'Tarawa Atoll',
@@ -2260,6 +2543,7 @@ export const CURATED_PLACES: SeedPlace[] = [
     lat: 1.4518,
     lng: 173,
     artKey: null,
+    category: 'landmark',
   },
 
 ];

@@ -32,6 +32,8 @@ export interface Place {
   isMine: boolean;
   artKey: string | null;
   category: PlaceCategory;
+  /** Full U.S. state name for the one-per-state collection; null otherwise. */
+  state: string | null;
   createdAt: string;
   stamp: Stamp | null;
 }

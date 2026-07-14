@@ -41,6 +41,9 @@ const placeCols = (db.prepare('PRAGMA table_info(places)').all() as { name: stri
 if (!placeCols.includes('category')) {
   db.exec(`ALTER TABLE places ADD COLUMN category TEXT NOT NULL DEFAULT 'landmark';`);
 }
+if (!placeCols.includes('state')) {
+  db.exec(`ALTER TABLE places ADD COLUMN state TEXT;`);
+}
 
 // Additive migration for databases created before profile photos existed.
 const userCols = (db.prepare('PRAGMA table_info(users)').all() as { name: string }[]).map(
@@ -52,22 +55,47 @@ if (!userCols.includes('photo')) {
     ALTER TABLE users ADD COLUMN photo_updated_at TEXT;`);
 }
 
-const placeCount = db
-  .prepare('SELECT count(*) AS n FROM places WHERE is_curated = 1')
-  .get() as { n: number };
-
-if (placeCount.n === 0) {
-  const insert = db.prepare(
-    `INSERT INTO places (id, name, country, description, lat, lng, is_curated, art_key, category)
-     VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)`,
-  );
-  const seedAll = db.transaction(() => {
-    for (const p of CURATED_PLACES) {
-      insert.run(randomUUID(), p.name, p.country, p.description, p.lat, p.lng, p.artKey, p.category);
+// Keep curated data synchronized instead of only seeding an empty database.
+// This lets existing installations receive newly added cities and nullable
+// metadata such as state names without disturbing user-created places/stamps.
+const findCurated = db.prepare(
+  'SELECT id FROM places WHERE is_curated = 1 AND name = ? AND country = ? LIMIT 1',
+);
+const insertCurated = db.prepare(
+  `INSERT INTO places
+     (id, name, country, description, lat, lng, is_curated, art_key, category, state)
+   VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
+);
+const updateCurated = db.prepare(
+  `UPDATE places
+   SET description = ?, lat = ?, lng = ?, art_key = ?, category = ?, state = ?
+   WHERE id = ?`,
+);
+let insertedCurated = 0;
+const syncCurated = db.transaction(() => {
+  for (const p of CURATED_PLACES) {
+    const existing = findCurated.get(p.name, p.country) as { id: string } | undefined;
+    if (existing) {
+      updateCurated.run(p.description, p.lat, p.lng, p.artKey, p.category, p.state, existing.id);
+    } else {
+      insertCurated.run(
+        randomUUID(),
+        p.name,
+        p.country,
+        p.description,
+        p.lat,
+        p.lng,
+        p.artKey,
+        p.category,
+        p.state,
+      );
+      insertedCurated += 1;
     }
-  });
-  seedAll();
-  console.log(`Seeded ${CURATED_PLACES.length} curated places`);
+  }
+});
+syncCurated();
+if (insertedCurated > 0) {
+  console.log(`Added ${insertedCurated} curated places (${CURATED_PLACES.length} total)`);
 }
 
 export interface UserRow {
@@ -91,6 +119,7 @@ export interface PlaceRow {
   created_by: number | null;
   art_key: string | null;
   category: string;
+  state: string | null;
   created_at: string;
 }
 

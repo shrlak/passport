@@ -1,6 +1,6 @@
 # StampQuest 🗺️
 
-A mobile-first web app where you collect digital stamps from places you visit and build a personal travel passport. Get within 500 m of a landmark, tap **Collect stamp**, and it's inked into your passport forever — then take or upload a photo of the place and it becomes the stamp's artwork.
+A mobile-first web app where you collect digital stamps from places you visit and build a personal travel passport. Every place begins as an illustrated stamp behind a translucent lock. Get within 500 m, collect it, then take or upload your own photo to replace the illustration and make the stamp yours.
 
 | Passport | Browse nearby | Add your photo | Collect with a photo |
 | --- | --- | --- | --- |
@@ -10,22 +10,24 @@ A mobile-first web app where you collect digital stamps from places you visit an
 
 - **GPS check-in** — the Collect button unlocks only when you're physically near a place; the server re-validates the distance, so the client can't be trivially spoofed.
 - **Remote collection with photo evidence** — no GPS needed: upload a photo you already have of the place. It's accepted if the photo's own EXIF location is near the place, or (with photo verification configured) if the photo visibly shows the landmark.
-- **Your photo is the stamp** — every stamp starts as a blank frame; the first photo you add for a place — from collecting in person or via photo evidence — becomes that stamp's artwork, inside the same vintage postage-stamp frame.
-- **281 curated world landmarks** spanning Asia, Europe, the Americas, Africa, and Oceania — including one iconic stop in each of the 50 U.S. states — each rendered in a shared vintage-poster frame (procedural SVG — deterministic per place, zero stored images) until you fill it with your own photo.
+- **Illustrated, locked stamps** — every place immediately shows its own colorful travel-poster artwork beneath a translucent glass lock, so the passport stays visual before anything has been collected.
+- **Your photo is the stamp** — the first photo you add for a place — from collecting in person or via photo evidence — replaces the built-in illustration and removes its lock, inside the same vintage postage-stamp frame.
+- **329 curated places** — 203 landmarks, 76 cities, and one iconic stop in each of the 50 U.S. states — spanning Asia, Europe, the Americas, Africa, and Oceania. Each has deterministic illustrated artwork until you fill it with your own photo.
 - **Custom places** — add your own spots (café, trailhead, rooftop) from the floating **+** button, wherever you are in the app; each gets a generated stamp in the same style. Private to your account.
-- **Simple accounts** — sign up with just a username and password. Your stamps, custom places, and photos are private to your account; no third-party sign-in required.
+- **Simple accounts** — sign up with just a username and password. Your stamps, custom places, and photos are private to your account; no third-party sign-in required. The static Pages build provides the same account gate locally with PBKDF2-hashed passwords and per-account device storage.
 - **Profile photo** — tap your avatar in the top-right corner or on the profile tab to add or replace your profile picture.
 - **Home landing page** — a stats strip (stamps, countries, continents traveled) up top, then three cards — Landmarks, Cities, US States — each opening into its own browsing page, reached only from here.
 - **Browse by Landmarks, Cities, or US States** — each category page offers a **card or map view** (the map is a real pannable/zoomable Leaflet map with OpenStreetMap tiles, lazy-loaded so it never costs anyone who stays on card view), plus its own search.
 - **Metric or imperial** — a units toggle on your profile switches every distance in the app (collect radius, "how far away," photo-match radius) between the two, remembered per device.
 - **Personal passport** — your home page's stats strip tracks stamps, countries, and continents traveled; your profile shows a 3-column gallery of everything you've collected plus the custom places you've added.
 - **Globe-trotting intro** — a one-time animated splash (spinning globe, orbiting plane, landmarks lighting up across every continent) plays when you enter the app, then fades into your passport underneath.
+- **Focused Apple-style interface** — system typography, frosted navigation, spacious white cards, a dedicated travel mark, and restrained motion keep the collection—not the chrome—at center stage.
 - **Installable PWA** — add to home screen, standalone display, offline app shell.
 - **Self-contained backend** — Node + Express + SQLite in this repo. No third-party services required.
 
 ## Stack
 
-- `client/` — Vite, React 19, TypeScript, Tailwind CSS v4, react-router, vite-plugin-pwa, `framer-motion` for animation, `leaflet`/`react-leaflet` for the map view (code-split, only loaded when opened), `exifr` for reading a photo's embedded GPS
+- `client/` — Vite, React 19, TypeScript, Tailwind CSS v4, react-router, vite-plugin-pwa, `framer-motion` for animation, `leaflet`/`react-leaflet` for the map view (code-split, only loaded when opened), `exifr` for reading a photo's embedded GPS, and Web Crypto for hashed local-mode accounts
 - `server/` — Express 5, better-sqlite3, session cookies (httpOnly), scrypt password hashing via `node:crypto`, optional Gemini/Hugging Face vision check for photo-evidence collection
 - `e2e/` — Playwright suite with mocked geolocation at phone viewport
 
@@ -66,7 +68,7 @@ One process serves everything: the built client, the SPA fallback, and the `/api
 
 Every push to the default branch runs `.github/workflows/deploy-pages.yml`, which publishes a static build to **https://shrlak.github.io/passport/**.
 
-GitHub Pages can't run the Node API, so this build swaps in a browser backend (`VITE_BACKEND=local`): you're auto-signed in as a local traveler, and stamps + custom places (plus their photos, in IndexedDB) are stored on the device (no accounts, no cross-device sync; the 500 m / photo-radius checks run client-side). Photo evidence works via EXIF GPS matching only — the landmark vision check needs a server and Anthropic API key, so it's unavailable in this build. Everything else is identical — and since Pages serves over HTTPS, GPS collecting and PWA install work great on phones.
+GitHub Pages can't run the Node API, so this build swaps in a browser backend (`VITE_BACKEND=local`). It has a real local sign-up/sign-in gate: passwords are salted and PBKDF2-hashed with Web Crypto, and each account gets isolated stamps, custom places, profile photo, and stamp photos. Data remains on that browser/device, so there is no cross-device sync. The 500 m and photo-radius checks run client-side, and photo evidence uses EXIF GPS only because Gemini/Hugging Face verification requires the Node server. Since Pages serves over HTTPS, GPS collection and PWA installation work on phones.
 
 The workflow publishes the build to a `gh-pages` branch, which GitHub picks up automatically. If the site doesn't appear after the first successful run, enable it once by hand — repo **Settings → Pages → Deploy from a branch → `gh-pages` / root** — later deploys are automatic.
 
@@ -86,7 +88,7 @@ The radius lives in `server/src/geo.ts` (authoritative) and is mirrored in `clie
 On any place you haven't collected yet, the detail page offers **"Collect with a photo"** — for the landmarks you've already visited, or ones you have an old photo of. `POST /api/places/:id/collect-photo` accepts the image and grants the stamp if either check passes:
 
 1. **EXIF GPS match** — the client reads the photo's embedded location (`client/src/lib/exif.ts`, via `exifr`) and sends it alongside the image. If it's within **5 km** of the place (`PHOTO_RADIUS_M` in `server/src/geo.ts` — more generous than live GPS, since landmark photos are often taken from a viewpoint some distance away), the stamp is granted immediately.
-2. **Landmark recognition** — if there's no usable EXIF location (or it doesn't match) and `ANTHROPIC_API_KEY` is configured, the server asks Claude's vision (`server/src/landmark.ts`) whether the photo actually shows that place's landmark or an unmistakable famous feature of it. A confident match grants the stamp.
+2. **Landmark recognition** — if there's no usable EXIF location (or it doesn't match), `server/src/landmark.ts` asks Gemini when `GOOGLE_API_KEY` is configured, then falls back to Hugging Face when `HUGGINGFACE_API_KEY` is available. A confident match grants the stamp.
 
 Either way, the uploaded photo becomes the stamp's artwork — same as collecting in person and adding a photo afterward. Without either vision provider configured, only the EXIF path is available, and the UI explains that when a photo is rejected for having no location data.
 
@@ -98,7 +100,7 @@ Signed-in visitors land on the home page: a stats strip, then three cards — **
 
 The curated roster is tagged with a `category` — `landmark`, `city`, or `us-state`. Custom places you add default to `landmark`. Each category page offers:
 
-- **Card view** — the same 2-column stamp grid as your passport (collected stamps in color, locked ones grayscale), sorted by distance once you've granted location, alphabetical otherwise.
+- **Card view** — the same 2-column stamp grid as your passport, with every built-in illustration kept visible beneath a translucent lock until a personal photo replaces it. Places are sorted by distance once you've granted location, alphabetical otherwise.
 - **Map view** — a real Leaflet map with OpenStreetMap tiles and a pin per place; tap a pin to jump to that place's detail page. The map library is dynamically imported, so it only downloads if you actually open map view.
 
 ## Units
@@ -109,10 +111,10 @@ A Metric/Imperial toggle on the profile page (persisted in `localStorage`) contr
 
 - `users` — username (unique, 3–24 chars), scrypt password hash, plus an optional profile `photo` BLOB (`photo_mime`, `photo_updated_at`), served via `GET /api/auth/me/photo`
 - `sessions` — random 32-byte tokens, 30-day expiry, httpOnly cookie
-- `places` — curated seed (`is_curated=1`, `art_key` → client art registry) or user-created (`created_by`, private to creator), tagged with a `category`
+- `places` — curated seed (`is_curated=1`, `art_key` → client art registry) or user-created (`created_by`, private to creator), tagged with a `category` and a nullable full `state` name for the 50 U.S.-state entries
 - `stamps` — `UNIQUE(user_id, place_id)`, collection time + coordinates + distance, plus an optional `photo` BLOB (`photo_mime`, `photo_updated_at`) — the user's own photo of the place, served via `GET /api/places/:id/photo`
 
-The schema is applied idempotently on boot (including an additive migration for the `category` column on pre-existing databases); the 281 landmarks seed automatically into an empty database.
+The schema is applied idempotently on boot, including additive migrations for `category`, `state`, and photo fields. Curated records are synchronized by name and country on every boot, so an existing database receives newly added cities and state labels without replacing user-created places or collected stamps. The current roster is 329 places: 203 landmarks, 76 cities, and 50 state entries.
 
 ## Tests
 
@@ -121,10 +123,10 @@ npx playwright install chromium   # once
 npm run e2e
 ```
 
-The suite builds the client, boots the server on a throwaway database (with `GOOGLE_API_KEY`/`HUGGINGFACE_API_KEY` unset, so the landmark-recognition path is deterministically off), and drives the real app at 390×844 with mocked geolocation: registration → home landing page (stats strip, category cards) → the Landmarks card's card and map views → in-range detection at the Eiffel Tower → collect → add a photo, which becomes the stamp art → persistence across reload → the Cities and US States cards → custom place creation via the floating **+** button → the profile's collected-stamps gallery, units toggle, and profile-photo upload → **server-side rejection of far-away coordinates** → **remote collection via matching photo EXIF GPS**, plus rejection of a too-far or location-less photo → auth and privacy checks.
+The suite builds the client, boots the server on a throwaway database (with `GOOGLE_API_KEY`/`HUGGINGFACE_API_KEY` unset, so the landmark-recognition path is deterministically off), and drives the real app at 390×844 with mocked geolocation: unauthenticated route gate → registration → home landing page (329-place stats and category cards) → the Landmarks card's card and map views → in-range detection at the Eiffel Tower → collect → verify its built-in illustration and translucent lock → add a photo, which replaces both → persistence across reload → the 76-city and 50-state collections (including state-name labels) → custom place creation via the floating **+** button → the profile's collected-stamps gallery, units toggle, profile-photo upload, and sign-out → **server-side rejection of far-away coordinates** → **remote collection via matching photo EXIF GPS**, plus rejection of a too-far or location-less photo → account privacy checks.
 
 ## Stamp art
 
-Every stamp's frame — perforated edges, palette, caption band — is generated deterministically from the place's identity (an FNV-1a hash picks the palette, denomination, and album tilt). The frame starts **blank**: a locked stamp is grayscale with a lock icon, and a collected-but-photo-less stamp shows a dashed outline with a camera icon, waiting for your photo. Once you add one — by taking/uploading a photo after collecting, or via photo-evidence collection — it fills the frame as the stamp's artwork. The original procedural landmark illustrations (hand-authored silhouette paths in `client/src/art/landmarks.ts`, motifs in `client/src/art/motifs.ts`) still exist and render on the auth screen and the hidden `/gallery` QA sheet, which is the place to look if you want to see the full illustrated set.
+Every stamp's frame — perforated edges, palette, caption band, illustration, and album tilt — is generated deterministically from the place's identity. An FNV-1a hash selects the palette, denomination, and fallback scene motif; recognized landmarks use hand-authored silhouette paths from `client/src/art/landmarks.ts`. Before a traveler adds a photo, that artwork remains visible beneath a centered translucent lock. Collecting records the visit, but the lock intentionally stays in place until the traveler takes or uploads their own image. That image then replaces the illustration and the lock disappears. The hidden `/gallery` route remains a lock-free QA sheet for the complete illustration system.
 
-App icons are rendered from the same design language: `npm run gen-icons` (requires Playwright's chromium).
+The globe-and-flight app mark is shared by the frosted top bar, favicon, and install icons. Regenerate the PNG variants with `npm run gen-icons` (requires Playwright's Chromium).

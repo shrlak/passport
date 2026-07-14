@@ -19,14 +19,14 @@ const CATEGORY_META: Record<
 > = {
   landmark: {
     title: 'Landmarks',
-    placeholder: 'Search landmarks or countries…',
+    placeholder: 'Search landmarks…',
     noun: 'landmarks',
     center: [20, 10],
     zoom: 2,
   },
   city: {
     title: 'Cities',
-    placeholder: 'Search cities or countries…',
+    placeholder: 'Search cities…',
     noun: 'cities',
     center: [25, 10],
     zoom: 2,
@@ -59,7 +59,11 @@ export default function CategoryExplorePage({ category }: { category: PlaceCateg
   const q = query.trim().toLowerCase();
   const filtered = categoryPlaces
     ? categoryPlaces.filter(
-        (p) => !q || p.name.toLowerCase().includes(q) || p.country.toLowerCase().includes(q),
+        (p) =>
+          !q ||
+          p.name.toLowerCase().includes(q) ||
+          p.country.toLowerCase().includes(q) ||
+          p.state?.toLowerCase().includes(q),
       )
     : null;
 
@@ -79,24 +83,29 @@ export default function CategoryExplorePage({ category }: { category: PlaceCateg
     : null;
 
   return (
-    <div className="px-4 pt-4">
+    <div className="px-5 pt-5">
       <motion.button
         type="button"
         onClick={() => navigate('/')}
-        whileHover={{ backgroundColor: 'rgba(47, 42, 36, 0.06)' }}
+        whileHover={{ y: -1 }}
         whileTap={{ scale: 0.88 }}
         transition={{ type: 'spring', stiffness: 500, damping: 28 }}
-        className="mb-2 flex h-11 w-11 items-center justify-center rounded-full text-2xl"
+        className="mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-black/5 bg-white text-2xl shadow-sm"
         aria-label="Back to home"
         data-testid="back-button"
       >
         ‹
       </motion.button>
 
-      <h1 className="mb-4 font-display text-3xl">{meta.title}</h1>
+      <div className="mb-5">
+        <h1 className="font-display text-[34px] leading-tight">{meta.title}</h1>
+        <p className="mt-1 text-sm text-ink-soft">
+          {categoryPlaces ? `${categoryPlaces.length} places to discover` : 'Loading places…'}
+        </p>
+      </div>
 
       {categoryPlaces && categoryPlaces.length > 0 && (
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-5 flex items-center gap-2.5">
           <div className="flex-1">
             <SearchInput
               value={query}
@@ -105,15 +114,15 @@ export default function CategoryExplorePage({ category }: { category: PlaceCateg
               data-testid={`${category}-search`}
             />
           </div>
-          <div className="flex shrink-0 rounded-xl border border-ink/10 bg-paper-light p-1">
+          <div className="flex shrink-0 rounded-2xl bg-black/5 p-1" role="group" aria-label="View">
             {(['cards', 'map'] as const).map((v) => (
               <button
                 key={v}
                 type="button"
                 onClick={() => setView(v)}
                 data-testid={`${category}-view-${v}`}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                  view === v ? 'bg-ink text-paper-light' : 'text-ink-soft'
+                className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+                  view === v ? 'bg-white text-ink shadow-sm' : 'text-ink-soft'
                 }`}
               >
                 {v === 'cards' ? 'Cards' : 'Map'}
@@ -132,7 +141,7 @@ export default function CategoryExplorePage({ category }: { category: PlaceCateg
       {view === 'cards' ? (
         sorted &&
         sorted.length > 0 && (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-5 pb-6" data-testid={`${category}-cards`}>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 pb-7" data-testid={`${category}-cards`}>
             {sorted.map(({ place }, i) => (
               <StampCard key={place.id} place={place} index={i} />
             ))}
@@ -140,7 +149,7 @@ export default function CategoryExplorePage({ category }: { category: PlaceCateg
         )
       ) : (
         <div
-          className="-mx-4 h-[65vh] overflow-hidden border-y border-ink/10"
+          className="h-[65vh] overflow-hidden rounded-[24px] border border-black/5 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
           data-testid={`${category}-map`}
         >
           <Suspense

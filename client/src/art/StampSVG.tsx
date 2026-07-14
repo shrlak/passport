@@ -43,20 +43,22 @@ function nameFontSize(name: string): number {
 }
 
 /**
- * Deterministic vintage postage stamp. The art panel starts blank; the
- * user's own photo of the place becomes the stamp art (photoUrl). The
- * procedural landmark scenes remain available behind `illustrated` for
- * the /gallery QA sheet.
+ * Deterministic vintage postage stamp. Every place starts with its own
+ * illustrated artwork beneath a translucent lock. A traveler's photo
+ * replaces the illustration and removes the lock once one is uploaded.
  */
 export function StampSVG({
   subject,
   photoUrl,
-  illustrated = false,
+  illustrated = true,
+  locked,
   className,
 }: {
   subject: StampSubject;
   photoUrl?: string | null;
   illustrated?: boolean;
+  /** Defaults to locked until a personal photo replaces the illustration. */
+  locked?: boolean;
   className?: string;
 }) {
   const uid = useId();
@@ -76,6 +78,7 @@ export function StampSVG({
   const hillPeak1 = P.x + P.w * (0.15 + rnd(30) / 100);
   const hillPeak2 = P.x + P.w * (0.55 + rnd(30) / 100);
   const denomination = 5 + (hash % 80);
+  const showLock = (locked ?? !photoUrl) && !photoUrl;
 
   const skyId = `sky-${uid}`;
   const clipId = `clip-${uid}`;
@@ -137,7 +140,7 @@ export function StampSVG({
               />
             </>
           ) : illustrated ? (
-            <>
+            <g data-testid="stamp-illustration">
               <rect x={P.x} y={P.y} width={P.w} height={P.h} fill={`url(#${skyId})`} />
               <circle cx={sunCx} cy={sunCy} r={sunR + 14} fill="none" stroke={palette.sun} strokeWidth="1.5" opacity="0.25" />
               <circle cx={sunCx} cy={sunCy} r={sunR + 7} fill="none" stroke={palette.sun} strokeWidth="1.5" opacity="0.4" />
@@ -149,7 +152,7 @@ export function StampSVG({
                 {art.accent && <path d={art.accent} fill={PAPER} fillRule="evenodd" opacity="0.92" />}
               </g>
               <rect x={P.x} y={groundY} width={P.w} height={P.y + P.h - groundY} fill={palette.ink} />
-            </>
+            </g>
           ) : (
             <>
               {/* blank slot, waiting for the traveler's own photo */}
@@ -174,6 +177,30 @@ export function StampSVG({
                 />
               </g>
             </>
+          )}
+
+          {showLock && (
+            <g
+              transform={`translate(${W / 2} ${P.y + P.h / 2})`}
+              data-testid="stamp-lock"
+              aria-hidden="true"
+            >
+              {/* A glassy badge keeps the place art visible underneath. */}
+              <circle r="29" fill="#101114" opacity="0.4" />
+              <circle r="27.5" fill="#ffffff" opacity="0.12" />
+              <circle r="27.5" fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.55" />
+              <path
+                d="M-8 -3 V-9 A8 8 0 0 1 8 -9 V-3"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="3.2"
+                strokeLinecap="round"
+                opacity="0.95"
+              />
+              <rect x="-12" y="-4" width="24" height="19" rx="5" fill="#ffffff" opacity="0.94" />
+              <circle cx="0" cy="4" r="2.4" fill="#34363b" />
+              <rect x="-1.2" y="5" width="2.4" height="5" rx="1.2" fill="#34363b" />
+            </g>
           )}
         </g>
 

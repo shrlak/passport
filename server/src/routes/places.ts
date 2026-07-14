@@ -32,6 +32,7 @@ function serializePlace(place: PlaceRow, stamp: StampRow | null) {
     isMine: place.created_by !== null,
     artKey: place.art_key,
     category: place.category,
+    state: place.state,
     createdAt: place.created_at,
     stamp: stamp ? serializeStamp(stamp) : null,
   };
@@ -126,8 +127,9 @@ placesRouter.post('/', (req, res) => {
   const desc = typeof description === 'string' ? description.trim().slice(0, 400) : '';
   const id = randomUUID();
   db.prepare(
-    `INSERT INTO places (id, name, country, description, lat, lng, is_curated, created_by)
-     VALUES (?, ?, ?, ?, ?, ?, 0, ?)`,
+    `INSERT INTO places
+       (id, name, country, description, lat, lng, is_curated, created_by, state)
+     VALUES (?, ?, ?, ?, ?, ?, 0, ?, NULL)`,
   ).run(id, name.trim(), country.trim(), desc, lat, lng, user.id);
   const place = db.prepare('SELECT * FROM places WHERE id = ?').get(id) as PlaceRow;
   res.status(201).json({ place: serializePlace(place, null) });
@@ -233,8 +235,8 @@ placesRouter.post('/:id/collect', (req, res) => {
 // Remote collection with photo evidence. Two verification paths:
 // 1. The photo's EXIF GPS (extracted client-side, same trust level as browser
 //    geolocation) is within PHOTO_RADIUS_M of the place.
-// 2. Otherwise, if ANTHROPIC_API_KEY is configured, a vision check confirms
-//    the photo actually shows this place's landmark.
+// 2. Otherwise, if a Gemini or Hugging Face provider is configured, a vision
+//    check confirms the photo actually shows this place's landmark.
 // Either way the photo becomes the stamp art.
 placesRouter.post('/:id/collect-photo', async (req, res) => {
   const user = currentUser(res);

@@ -5,7 +5,7 @@ const NYC = { latitude: 40.7128, longitude: -74.006 };
 const shot = (name: string) => fileURLToPath(new URL(`screenshots/${name}.png`, import.meta.url));
 
 // Keep in sync with the curated roster in server/src/seed.ts.
-const CURATED_COUNT = 281;
+const CURATED_COUNT = 329;
 
 // One account shared across the serial suite. Usernames are letters/digits/underscore only.
 const username = `e2e_${Date.now()}`;
@@ -18,7 +18,9 @@ const TEST_PNG_BASE64 =
 test.describe.configure({ mode: 'serial' });
 
 test('register, collect at the Eiffel Tower, add a custom place', async ({ page }) => {
-  await page.goto('/auth');
+  // Protected routes always return unauthenticated visitors to the account gate.
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/auth$/);
   await page.screenshot({ path: shot('01-auth') });
 
   // register (auto-login, no email confirmation)
@@ -61,8 +63,11 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   );
   await page.screenshot({ path: shot('04-collected') });
 
-  // the stamp starts blank — tapping it is the primary way to add a photo
+  // Collected stamps keep their built-in art and translucent lock until the
+  // traveler personalizes them; tapping the stamp is the primary upload path.
   await expect(page.getByTestId('stamp-photo')).toHaveCount(0);
+  await expect(page.getByTestId('stamp-illustration')).toBeVisible();
+  await expect(page.getByTestId('stamp-lock')).toBeVisible();
   await expect(page.getByTestId('stamp-photo-tap-target')).toBeVisible();
   const uploadChooser = page.waitForEvent('filechooser');
   await page.getByTestId('stamp-photo-tap-target').click();
@@ -73,11 +78,14 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
     buffer: Buffer.from(TEST_PNG_BASE64, 'base64'),
   });
   await expect(page.getByTestId('stamp-photo')).toBeVisible();
+  await expect(page.getByTestId('stamp-illustration')).toHaveCount(0);
+  await expect(page.getByTestId('stamp-lock')).toHaveCount(0);
 
   // persistence: survives a full reload (server-side stamp + photo, not client state)
   await page.reload();
   await expect(page.getByTestId('collected-line')).toBeVisible();
   await expect(page.getByTestId('stamp-photo')).toBeVisible();
+  await expect(page.getByTestId('stamp-lock')).toHaveCount(0);
 
   // home reflects the collection
   await page.getByTestId('topbar-home').click();
@@ -87,12 +95,17 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   // cities and US states cards are separately browsable
   await page.getByTestId('home-card-city').click();
   await expect(page.getByTestId('city-cards')).toBeVisible();
+  await expect(
+    page.locator('[data-testid="city-cards"] [data-testid="stamp-card"]'),
+  ).toHaveCount(76);
   await page.getByTestId('back-button').click();
   await page.getByTestId('home-card-us-state').click();
   await expect(page.getByTestId('us-state-cards')).toBeVisible();
   await expect(
     page.locator('[data-testid="us-state-cards"] [data-testid="stamp-card"]'),
   ).toHaveCount(50);
+  await page.getByTestId('us-state-search').fill('Alabama');
+  await expect(page.getByTestId('state-name')).toHaveText('Alabama');
   await page.getByTestId('back-button').click();
 
   // custom place via the floating Add button, at current location, then collect it
@@ -135,6 +148,10 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   // the avatar persists across reload (server-side, not client state)
   await page.reload();
   await expect(page.locator('[data-testid="profile-photo-tap-target"] img')).toBeVisible();
+
+  // Sign-out closes the account session and restores the login gate.
+  await page.getByTestId('sign-out').click();
+  await expect(page).toHaveURL(/\/auth$/);
 });
 
 test('proximity is enforced server-side, not just in the UI', async ({ page, context }) => {

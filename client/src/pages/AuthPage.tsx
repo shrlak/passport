@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/Button';
-import { StampSVG } from '../art/StampSVG';
+import { BrandMark } from '../components/BrandMark';
 import { ApiError } from '../lib/api';
 
 const ERROR_COPY: Record<string, string> = {
@@ -44,30 +44,39 @@ export default function AuthPage() {
   };
 
   return (
-    <motion.div
-      className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-10"
+    <motion.main
+      className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-10"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
       <motion.div
-        className="mx-auto mb-4 w-28"
-        initial={{ opacity: 0, scale: 0.8, rotate: -3 }}
-        animate={{ opacity: 1, scale: 1, rotate: -3 }}
+        className="mx-auto mb-5 rounded-[22px] shadow-[0_14px_36px_rgba(0,113,227,0.24)]"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
       >
-        <StampSVG
-          subject={{ id: 'welcome', name: 'StampQuest', country: 'Your travel passport', artKey: 'eiffel' }}
-          illustrated
-          className="w-full drop-shadow-[0_3px_6px_rgba(47,42,36,0.25)]"
-        />
+        <BrandMark size={76} />
       </motion.div>
-      <h1 className="text-center font-display text-4xl">StampQuest</h1>
-      <p className="mt-1 text-center text-sm text-ink-soft">
-        Collect stamps from landmarks in every corner of the world.
+      <h1 className="text-center font-display text-[38px] leading-tight">StampQuest</h1>
+      <p className="mx-auto mt-2 max-w-72 text-center text-[15px] leading-relaxed text-ink-soft">
+        Turn the places you visit into a passport that is entirely yours.
       </p>
 
-      <form onSubmit={submit} className="mt-8 flex flex-col gap-3">
+      <form
+        onSubmit={submit}
+        className="mt-8 flex flex-col gap-3 rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(0,0,0,0.08)]"
+      >
+        <div className="mb-1">
+          <p className="font-display text-xl">
+            {mode === 'signin' ? 'Welcome back' : 'Create your passport'}
+          </p>
+          <p className="mt-0.5 text-xs text-ink-soft">
+            {mode === 'signin'
+              ? 'Sign in to continue your collection.'
+              : 'Your collection stays private to your account.'}
+          </p>
+        </div>
         <input
           className="input"
           required
@@ -93,18 +102,18 @@ export default function AuthPage() {
           data-testid="auth-password"
         />
         {error && (
-          <p className="rounded-lg bg-terracotta/10 px-3 py-2 text-sm text-terracotta" role="alert">
+          <p className="rounded-xl bg-terracotta/8 px-3 py-2.5 text-sm text-terracotta" role="alert">
             {error}
           </p>
         )}
-        <Button type="submit" disabled={busy} data-testid="auth-submit">
+        <Button type="submit" disabled={busy} className="mt-1 w-full" data-testid="auth-submit">
           {busy ? 'One moment…' : mode === 'signin' ? 'Sign in' : 'Create account'}
         </Button>
       </form>
 
       <button
         type="button"
-        className="mt-4 text-center text-sm text-ink-soft underline underline-offset-2"
+        className="mt-5 text-center text-sm font-medium text-teal transition-opacity hover:opacity-70"
         onClick={() => {
           setMode(mode === 'signin' ? 'signup' : 'signin');
           setError(null);
@@ -112,6 +121,6 @@ export default function AuthPage() {
       >
         {mode === 'signin' ? 'New here? Create an account' : 'Have an account? Sign in'}
       </button>
-    </motion.div>
+    </motion.main>
   );
 }

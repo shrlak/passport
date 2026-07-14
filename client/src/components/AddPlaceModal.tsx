@@ -74,7 +74,7 @@ export function AddPlaceModal({ open, onClose }: { open: boolean; onClose: () =>
         <>
           <motion.div
             key="backdrop"
-            className="fixed inset-0 z-40 bg-ink/40"
+            className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -82,7 +82,7 @@ export function AddPlaceModal({ open, onClose }: { open: boolean; onClose: () =>
           />
           <motion.div
             key="sheet"
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-paper px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+1.5rem)]"
+            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-[32px] bg-paper-light px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] shadow-[0_-18px_50px_rgba(0,0,0,0.12)]"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -116,7 +116,8 @@ export function AddPlaceModal({ open, onClose }: { open: boolean; onClose: () =>
                   name: name.trim() || 'Your place',
                   country: country.trim() || 'Somewhere',
                 }}
-                className="w-full drop-shadow-[0_3px_6px_rgba(47,42,36,0.2)]"
+                locked={false}
+                className="w-full drop-shadow-[0_4px_9px_rgba(0,0,0,0.16)]"
               />
             </motion.div>
 

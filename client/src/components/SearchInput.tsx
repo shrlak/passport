@@ -29,7 +29,7 @@ export function SearchInput({
         placeholder={placeholder}
         aria-label={placeholder}
         data-testid={testId}
-        className="w-full rounded-xl border border-ink/10 bg-paper-light py-2.5 pr-9 pl-9 font-sans text-sm text-ink placeholder:text-ink-soft transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-teal"
+        className="w-full rounded-2xl border border-ink/8 bg-paper-light py-2.5 pr-9 pl-9 font-sans text-sm text-ink shadow-sm placeholder:text-ink-soft transition-shadow duration-200 focus:outline-none focus:ring-4 focus:ring-teal/12"
       />
       <AnimatePresence>
         {value && (

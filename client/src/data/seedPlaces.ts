@@ -1,5 +1,5 @@
-// Curated landmarks for the static/local build (GitHub Pages demo mode).
-// Mirror of server/src/seed.ts — keep the two in sync when adding landmarks.
+// Curated places for the static/local build (GitHub Pages demo mode).
+// Mirror of server/src/seed.ts — keep the two in sync when adding places.
 export type PlaceCategory = 'landmark' | 'city' | 'us-state';
 
 export interface SeedPlace {
@@ -11,16 +11,23 @@ export interface SeedPlace {
   lng: number;
   artKey: string | null;
   category: PlaceCategory;
+  state: string | null;
 }
 
-// Derives the browse-tab category from a place's slug — kept in lockstep
-// with the same lists in server/src/seed.ts's categoryFor.
-const US_STATE_CODES = new Set([
-  'al', 'ak', 'az', 'ar', 'ca', 'co', 'ct', 'de', 'fl', 'ga', 'hi', 'id', 'il', 'in', 'ia',
-  'ks', 'ky', 'la', 'me', 'md', 'ma', 'mi', 'mn', 'ms', 'mo', 'mt', 'ne', 'nv', 'nh', 'nj',
-  'nm', 'ny', 'nc', 'nd', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'vt',
-  'va', 'wa', 'wv', 'wi', 'wy',
-]);
+// Derives local-build metadata from stable slugs; the resulting values are
+// kept in lockstep with the explicit metadata in server/src/seed.ts.
+const US_STATES: Record<string, string> = {
+  al: 'Alabama', ak: 'Alaska', az: 'Arizona', ar: 'Arkansas', ca: 'California',
+  co: 'Colorado', ct: 'Connecticut', de: 'Delaware', fl: 'Florida', ga: 'Georgia',
+  hi: 'Hawaii', id: 'Idaho', il: 'Illinois', in: 'Indiana', ia: 'Iowa', ks: 'Kansas',
+  ky: 'Kentucky', la: 'Louisiana', me: 'Maine', md: 'Maryland', ma: 'Massachusetts',
+  mi: 'Michigan', mn: 'Minnesota', ms: 'Mississippi', mo: 'Missouri', mt: 'Montana',
+  ne: 'Nebraska', nv: 'Nevada', nh: 'New Hampshire', nj: 'New Jersey', nm: 'New Mexico',
+  ny: 'New York', nc: 'North Carolina', nd: 'North Dakota', oh: 'Ohio', ok: 'Oklahoma',
+  or: 'Oregon', pa: 'Pennsylvania', ri: 'Rhode Island', sc: 'South Carolina',
+  sd: 'South Dakota', tn: 'Tennessee', tx: 'Texas', ut: 'Utah', vt: 'Vermont',
+  va: 'Virginia', wa: 'Washington', wv: 'West Virginia', wi: 'Wisconsin', wy: 'Wyoming',
+};
 const CITY_SLUGS = new Set([
   'sweden-gamlastan', 'austria-hallstatt', 'croatia-dubrovnik', 'cuba-havana',
   'colombia-cartagena', 'montenegro-kotor', 'lithuania-vilnius', 'latvia-riga',
@@ -29,12 +36,27 @@ const CITY_SLUGS = new Set([
   'tunisia-sidiboussaid', 'algeria-casbah', 'canada-oldquebec', 'elsalvador-ataco',
   'uruguay-colonia', 'puertorico-oldsanjuan', 'suriname-paramaribo', 'vanuatu-portvila',
   'tonga-nukualofa', 'solomonislands-honiara', 'newcaledonia-noumea', 'italy-amalfi',
+  'city-paris', 'city-london', 'city-rome', 'city-tokyo', 'city-seoul',
+  'city-new-york', 'city-los-angeles', 'city-chicago', 'city-san-francisco',
+  'city-washington-dc', 'city-toronto', 'city-vancouver', 'city-mexico-city',
+  'city-buenos-aires', 'city-rio', 'city-sao-paulo', 'city-lima', 'city-santiago',
+  'city-bogota', 'city-quito', 'city-amsterdam', 'city-barcelona', 'city-madrid',
+  'city-lisbon', 'city-prague', 'city-vienna', 'city-budapest', 'city-warsaw',
+  'city-berlin', 'city-copenhagen', 'city-oslo', 'city-helsinki', 'city-istanbul',
+  'city-athens', 'city-cairo', 'city-cape-town', 'city-marrakech', 'city-nairobi',
+  'city-dubai', 'city-abu-dhabi', 'city-doha', 'city-singapore', 'city-bangkok',
+  'city-kuala-lumpur', 'city-manila', 'city-sydney', 'city-melbourne', 'city-auckland',
 ]);
 function categoryFor(slug: string): PlaceCategory {
   const stateMatch = /^us-([a-z]{2})$/.exec(slug);
-  if (stateMatch && US_STATE_CODES.has(stateMatch[1])) return 'us-state';
+  if (stateMatch && US_STATES[stateMatch[1]]) return 'us-state';
   if (CITY_SLUGS.has(slug)) return 'city';
   return 'landmark';
+}
+
+function stateFor(slug: string): string | null {
+  const stateMatch = /^us-([a-z]{2})$/.exec(slug);
+  return stateMatch ? (US_STATES[stateMatch[1]] ?? null) : null;
 }
 
 // Stable ids so stamp art (hashed on id) and collected stamps survive reloads.
@@ -54,6 +76,7 @@ const p = (
   lng,
   description,
   category: categoryFor(artKey),
+  state: stateFor(artKey),
 });
 
 // Places without hand-drawn art (StampSVG falls back to a generic motif for
@@ -74,6 +97,7 @@ const q = (
   lng,
   description,
   category: categoryFor(id),
+  state: stateFor(id),
 });
 
 export const SEED_PLACES: SeedPlace[] = [
@@ -360,5 +384,55 @@ export const SEED_PLACES: SeedPlace[] = [
   q('cookislands-aitutaki', 'Aitutaki Lagoon', 'Cook Islands', -18.83, -159.77, 'A turquoise lagoon rings a near-atoll often ranked among the world’s most beautiful.'),
   q('newcaledonia-noumea', 'Nouméa', 'New Caledonia', -22.2758, 166.4581, 'A French Pacific capital sits beside the world’s largest lagoon, ringed by barrier reef.'),
   q('kiribati-tarawa', 'Tarawa Atoll', 'Kiribati', 1.4518, 173, 'A slender ring of coral islets holds the front line of a nation facing rising seas.'),
+
+  // Major world cities.
+  q('city-paris', 'Paris', 'France', 48.8566, 2.3522, 'Boulevards, neighborhood cafés, and monuments unfold along both banks of the Seine.'),
+  q('city-london', 'London', 'United Kingdom', 51.5072, -0.1276, 'Royal parks, historic markets, and a constantly evolving skyline meet along the Thames.'),
+  q('city-rome', 'Rome', 'Italy', 41.9028, 12.4964, 'Ancient ruins, Baroque piazzas, and everyday street life layer three millennia into one city.'),
+  q('city-tokyo', 'Tokyo', 'Japan', 35.6762, 139.6503, 'Lantern-lit lanes and high-speed city districts stretch around the world’s busiest rail network.'),
+  q('city-seoul', 'Seoul', 'South Korea', 37.5665, 126.978, 'Royal palaces, mountain trails, and late-night neighborhoods share the Han River basin.'),
+  q('city-new-york', 'New York City', 'United States', 40.7128, -74.006, 'Five boroughs bring together skyscrapers, neighborhood institutions, and cultures from everywhere.'),
+  q('city-los-angeles', 'Los Angeles', 'United States', 34.0522, -118.2437, 'Film history, hillside neighborhoods, and Pacific light spread across a vast creative metropolis.'),
+  q('city-chicago', 'Chicago', 'United States', 41.8781, -87.6298, 'Architectural landmarks rise beside Lake Michigan in the city that helped invent the skyscraper.'),
+  q('city-san-francisco', 'San Francisco', 'United States', 37.7749, -122.4194, 'Steep streets, cable cars, and distinctive neighborhoods roll between the bay and the Pacific.'),
+  q('city-washington-dc', 'Washington, D.C.', 'United States', 38.9072, -77.0369, 'Museums, memorials, and civic landmarks frame broad avenues along the Potomac.'),
+  q('city-toronto', 'Toronto', 'Canada', 43.6532, -79.3832, 'A lakeside skyline anchors one of the world’s most culturally diverse urban regions.'),
+  q('city-vancouver', 'Vancouver', 'Canada', 49.2827, -123.1207, 'Glass towers, forested parks, and mountain views meet the inlets of the Pacific Northwest.'),
+  q('city-mexico-city', 'Mexico City', 'Mexico', 19.4326, -99.1332, 'Ancient foundations, grand civic avenues, and an influential food scene fill a highland capital.'),
+  q('city-buenos-aires', 'Buenos Aires', 'Argentina', -34.6037, -58.3816, 'Tango halls, bookshops, and elegant avenues give the Río de la Plata capital its rhythm.'),
+  q('city-rio', 'Rio de Janeiro', 'Brazil', -22.9068, -43.1729, 'Mountain peaks, sweeping beaches, and samba neighborhoods wrap around Guanabara Bay.'),
+  q('city-sao-paulo', 'São Paulo', 'Brazil', -23.5505, -46.6333, 'Art, architecture, and a global dining culture animate South America’s largest metropolis.'),
+  q('city-lima', 'Lima', 'Peru', -12.0464, -77.0428, 'Clifftop districts overlook the Pacific above a historic center and celebrated culinary scene.'),
+  q('city-santiago', 'Santiago', 'Chile', -33.4489, -70.6693, 'A modern capital spreads across a valley with the Andes rising sharply behind it.'),
+  q('city-bogota', 'Bogotá', 'Colombia', 4.711, -74.0721, 'Museums, colorful colonial streets, and ambitious food culture thrive high in the Andes.'),
+  q('city-quito', 'Quito', 'Ecuador', -0.1807, -78.4678, 'A remarkably preserved colonial center runs along a narrow valley beneath volcanic peaks.'),
+  q('city-amsterdam', 'Amsterdam', 'Netherlands', 52.3676, 4.9041, 'Canal rings, narrow houses, and bicycle-first streets shape an intimate European capital.'),
+  q('city-barcelona', 'Barcelona', 'Spain', 41.3874, 2.1686, 'Modernist architecture, neighborhood markets, and Mediterranean beaches meet in Catalonia.'),
+  q('city-madrid', 'Madrid', 'Spain', 40.4168, -3.7038, 'Late-night plazas, landmark museums, and broad boulevards define Spain’s energetic capital.'),
+  q('city-lisbon', 'Lisbon', 'Portugal', 38.7223, -9.1393, 'Tiled façades and yellow trams climb seven hills above the broad Tagus estuary.'),
+  q('city-prague', 'Prague', 'Czech Republic', 50.0755, 14.4378, 'Gothic towers, riverside promenades, and historic courtyards gather around the Vltava.'),
+  q('city-vienna', 'Vienna', 'Austria', 48.2082, 16.3738, 'Imperial architecture, concert halls, and enduring café culture line the Ringstrasse.'),
+  q('city-budapest', 'Budapest', 'Hungary', 47.4979, 19.0402, 'Thermal baths and grand riverfront architecture face each other across the Danube.'),
+  q('city-warsaw', 'Warsaw', 'Poland', 52.2297, 21.0122, 'A meticulously rebuilt old town stands beside bold modern districts in Poland’s capital.'),
+  q('city-berlin', 'Berlin', 'Germany', 52.52, 13.405, 'Museums, memorials, experimental culture, and reinvention define Germany’s reunified capital.'),
+  q('city-copenhagen', 'Copenhagen', 'Denmark', 55.6761, 12.5683, 'Harbor swimming, design traditions, and bicycle streets make everyday urban life feel effortless.'),
+  q('city-oslo', 'Oslo', 'Norway', 59.9139, 10.7522, 'Contemporary waterfront architecture opens toward forest, islands, and the Oslofjord.'),
+  q('city-helsinki', 'Helsinki', 'Finland', 60.1699, 24.9384, 'Nordic design, public saunas, and island fortifications face the Gulf of Finland.'),
+  q('city-istanbul', 'Istanbul', 'Turkey', 41.0082, 28.9784, 'Mosques, markets, and ferry routes connect two continents across the Bosphorus.'),
+  q('city-athens', 'Athens', 'Greece', 37.9838, 23.7275, 'Ancient civic landmarks overlook lively neighborhoods shaped by modern Greek culture.'),
+  q('city-cairo', 'Cairo', 'Egypt', 30.0444, 31.2357, 'Historic mosques, busy markets, and Nile-side districts form a vast, layered capital.'),
+  q('city-cape-town', 'Cape Town', 'South Africa', -33.9249, 18.4241, 'Oceanfront neighborhoods sit between Table Mountain, vineyards, and two dramatic coastlines.'),
+  q('city-marrakech', 'Marrakech', 'Morocco', 31.6295, -7.9811, 'Garden courtyards, ochre lanes, and animated souks fill the old city beneath the Atlas Mountains.'),
+  q('city-nairobi', 'Nairobi', 'Kenya', -1.2921, 36.8219, 'A fast-growing East African capital sits beside a national park alive with wildlife.'),
+  q('city-dubai', 'Dubai', 'United Arab Emirates', 25.2048, 55.2708, 'Record-setting towers and historic creek neighborhoods meet in a global desert hub.'),
+  q('city-abu-dhabi', 'Abu Dhabi', 'United Arab Emirates', 24.4539, 54.3773, 'Cultural landmarks, waterfront promenades, and island districts shape the Emirati capital.'),
+  q('city-doha', 'Doha', 'Qatar', 25.2854, 51.531, 'Contemporary museums and a modern skyline curve around a traditional Gulf corniche.'),
+  q('city-singapore', 'Singapore', 'Singapore', 1.3521, 103.8198, 'Garden infrastructure, hawker centers, and dense modern districts define the island city-state.'),
+  q('city-bangkok', 'Bangkok', 'Thailand', 13.7563, 100.5018, 'Temple spires, food stalls, and river traffic energize neighborhoods along the Chao Phraya.'),
+  q('city-kuala-lumpur', 'Kuala Lumpur', 'Malaysia', 3.139, 101.6869, 'Mosques, markets, and landmark towers rise from a tropical, multicultural capital.'),
+  q('city-manila', 'Manila', 'Philippines', 14.5995, 120.9842, 'Historic walls, energetic commercial districts, and a broad bay frame the Philippine capital.'),
+  q('city-sydney', 'Sydney', 'Australia', -33.8688, 151.2093, 'Harbor landmarks, coastal walks, and beach neighborhoods define Australia’s largest city.'),
+  q('city-melbourne', 'Melbourne', 'Australia', -37.8136, 144.9631, 'Laneways, galleries, sport, and a serious café culture animate a creative southern city.'),
+  q('city-auckland', 'Auckland', 'New Zealand', -36.8509, 174.7645, 'Volcanic cones and twin harbors give New Zealand’s largest city an unmistakable setting.'),
 
 ];

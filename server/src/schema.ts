@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS places (
   created_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
   art_key TEXT,
   category TEXT NOT NULL DEFAULT 'landmark' CHECK (category IN ('landmark', 'city', 'us-state')),
+  state TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   CHECK (is_curated = (created_by IS NULL))
 );

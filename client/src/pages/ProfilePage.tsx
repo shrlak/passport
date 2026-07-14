@@ -40,10 +40,11 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="px-4 pt-6 pb-8">
-      <h1 className="font-display text-3xl">Profile</h1>
+    <div className="px-5 pt-7 pb-8">
+      <h1 className="font-display text-[34px] leading-tight">Profile</h1>
+      <p className="mt-1 text-sm text-ink-soft">Your account and travel preferences</p>
       <motion.div
-        className="mt-4 flex items-center gap-4 rounded-2xl border border-ink/10 bg-paper-light p-4"
+        className="mt-5 flex items-center gap-4 rounded-[24px] border border-black/4 bg-white p-4.5 shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -57,8 +58,8 @@ export default function ProfilePage() {
           data-testid="profile-photo-tap-target"
         >
           <Avatar user={user} size={64} />
-          <span className="pointer-events-none absolute -right-1 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/75 shadow">
-            <svg viewBox="0 0 24 24" className="h-3 w-3 fill-paper-light" aria-hidden>
+          <span className="pointer-events-none absolute -right-1 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-teal shadow">
+            <svg viewBox="0 0 24 24" className="h-3 w-3 fill-white" aria-hidden>
               <path d="M4 7h3.2L9 4.5h6L16.8 7H20a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Zm8 2.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Zm0 1.8a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z" />
             </svg>
           </span>
@@ -72,7 +73,7 @@ export default function ProfilePage() {
           data-testid="profile-photo-input"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-xl">{user?.username}</p>
+          <p className="truncate font-display text-[21px]">{user?.username}</p>
           <div className="mt-2 flex gap-4 text-sm">
             <p>
               <span className="font-display text-lg">{stats?.stampCount ?? 0}</span>{' '}
@@ -87,20 +88,20 @@ export default function ProfilePage() {
         </div>
       </motion.div>
 
-      <div className="mt-4 flex items-center justify-between rounded-2xl border border-ink/10 bg-paper-light p-4">
+      <div className="mt-3.5 flex items-center justify-between rounded-[24px] border border-black/4 bg-white p-4.5 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
         <div>
-          <p className="font-display text-base">Units</p>
+          <p className="font-display text-[17px]">Units</p>
           <p className="text-xs text-ink-soft">Distances shown around the app</p>
         </div>
-        <div className="flex shrink-0 rounded-xl border border-ink/10 bg-paper p-1" data-testid="units-toggle">
+        <div className="flex shrink-0 rounded-2xl bg-black/5 p-1" data-testid="units-toggle">
           {(['metric', 'imperial'] as const).map((u) => (
             <button
               key={u}
               type="button"
               onClick={() => setUnits(u)}
               data-testid={`units-${u}`}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                units === u ? 'bg-ink text-paper-light' : 'text-ink-soft'
+              className={`rounded-xl px-3 py-1.5 text-xs font-semibold capitalize transition-all ${
+                units === u ? 'bg-white text-ink shadow-sm' : 'text-ink-soft'
               }`}
             >
               {u}
@@ -109,7 +110,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <h2 className="mt-6 mb-2 font-display text-xl">
+      <h2 className="mt-7 mb-3 font-display text-[21px]">
         Collected stamps{' '}
         <span className="font-sans text-sm text-ink-soft">({collected.length})</span>
       </h2>
@@ -129,7 +130,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <h2 className="mt-6 mb-2 font-display text-xl">My places</h2>
+      <h2 className="mt-7 mb-3 font-display text-[21px]">My places</h2>
       {mine.length === 0 ? (
         <p className="text-sm text-ink-soft">
           None yet — tap the <span className="font-medium">+</span> button to add a place you
@@ -145,7 +146,7 @@ export default function ProfilePage() {
             >
               <Link
                 to={`/place/${p.id}`}
-                className="flex items-center justify-between rounded-xl border border-ink/10 bg-paper-light px-3 py-2.5"
+                className="flex items-center justify-between rounded-2xl border border-black/4 bg-white px-4 py-3 shadow-sm"
               >
                 <span className="min-w-0">
                   <span className="block truncate font-display">{p.name}</span>
@@ -158,10 +159,10 @@ export default function ProfilePage() {
         </ul>
       )}
 
-      {IS_LOCAL_BACKEND ? (
+      {IS_LOCAL_BACKEND && (
         <div className="mt-8">
           <p className="mb-3 text-center text-xs text-ink-soft">
-            Demo mode — your passport is stored on this device only.
+            Static mode — accounts and passports stay on this device only.
           </p>
           <Button
             variant="danger"
@@ -175,26 +176,26 @@ export default function ProfilePage() {
                 return;
               }
               const { resetLocalData } = await import('../lib/localBackend');
-              resetLocalData();
+              await resetLocalData();
               window.location.reload();
             }}
           >
             Reset passport
           </Button>
         </div>
-      ) : (
-        <Button
-          variant="danger"
-          className="mt-8 w-full"
-          onClick={async () => {
-            await signOut();
-            navigate('/auth', { replace: true });
-          }}
-          data-testid="sign-out"
-        >
-          Sign out
-        </Button>
       )}
+
+      <Button
+        variant="danger"
+        className={`${IS_LOCAL_BACKEND ? 'mt-3' : 'mt-8'} w-full`}
+        onClick={async () => {
+          await signOut();
+          navigate('/auth', { replace: true });
+        }}
+        data-testid="sign-out"
+      >
+        Sign out
+      </Button>
     </div>
   );
 }

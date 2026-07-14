@@ -53,7 +53,7 @@ export function GlobeIntro({ onDone }: { onDone: () => void }) {
             <defs>
               <radialGradient id="intro-globe" cx="35%" cy="30%" r="75%">
                 <stop offset="0%" stopColor="var(--color-paper-light)" />
-                <stop offset="55%" stopColor="#9fc4bc" />
+                <stop offset="55%" stopColor="#8ac4ff" />
                 <stop offset="100%" stopColor="var(--color-teal)" />
               </radialGradient>
             </defs>

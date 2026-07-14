@@ -24,8 +24,8 @@ export default defineConfig({
         // relative so the app also works when served under a sub-path
         start_url: './',
         scope: './',
-        background_color: '#f6f0e2',
-        theme_color: '#f6f0e2',
+        background_color: '#f5f5f7',
+        theme_color: '#f5f5f7',
         icons: [
           { src: 'icons/pwa-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/pwa-512.png', sizes: '512x512', type: 'image/png' },

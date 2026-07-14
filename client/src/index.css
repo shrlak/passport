@@ -1,16 +1,15 @@
-@import '@fontsource/dm-serif-display';
 @import 'tailwindcss';
 
 @theme {
-  --color-paper: #f6f0e2;
-  --color-paper-light: #faf5e9;
-  --color-ink: #2f2a24;
-  --color-ink-soft: #6b6154;
-  --color-terracotta: #c1554d;
-  --color-teal: #3e7c74;
-  --color-mustard: #d9a441;
-  --color-olive: #8b9a5b;
-  --font-display: 'DM Serif Display', Georgia, serif;
+  --color-paper: #f5f5f7;
+  --color-paper-light: #ffffff;
+  --color-ink: #1d1d1f;
+  --color-ink-soft: #6e6e73;
+  --color-terracotta: #ff3b30;
+  --color-teal: #0071e3;
+  --color-mustard: #ff9f0a;
+  --color-olive: #34c759;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
 }
 
 html {
@@ -20,29 +19,38 @@ html {
 
 body {
   color: var(--color-ink);
-  /* subtle paper grain */
   background-color: var(--color-paper);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   min-height: 100dvh;
+}
+
+.font-display {
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 
 .input {
   width: 100%;
-  min-height: 2.75rem;
-  border-radius: 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--color-ink) 20%, transparent);
+  min-height: 3rem;
+  border-radius: 0.875rem;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 11%, transparent);
   background: var(--color-paper-light);
-  padding: 0.5rem 1rem;
+  padding: 0.625rem 1rem;
   font-size: 1rem;
   color: var(--color-ink);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.02);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 .input::placeholder {
   color: var(--color-ink-soft);
   opacity: 0.7;
 }
 .input:focus {
-  outline: 2px solid var(--color-teal);
-  border-color: transparent;
+  outline: none;
+  border-color: color-mix(in srgb, var(--color-teal) 65%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-teal) 13%, transparent);
 }
 
 /* collect success: the stamp thumps down into the album */

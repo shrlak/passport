@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const outDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'client', 'public', 'icons');
 mkdirSync(outDir, { recursive: true });
 
-// Simplified stamp mark: perforated stamp, dawn sky, sun, mountain ridge.
+// Original picture-stamp mark shared with BrandMark.tsx.
 const iconSvg = (pad) => `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <rect width="512" height="512" fill="#f6f0e2"/>

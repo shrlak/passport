@@ -7,10 +7,10 @@ import type { Place } from '../types';
 import type { UnitSystem } from '../hooks/useUnits';
 
 function pinIcon(collected: boolean): L.DivIcon {
-  const color = collected ? '#d9a441' : '#c1554d';
+  const color = collected ? '#34c759' : '#8e8e93';
   return L.divIcon({
     className: '',
-    html: `<div style="width:20px;height:20px;border-radius:50% 50% 50% 0;background:${color};transform:rotate(-45deg);border:2px solid #faf5e9;box-shadow:0 1px 3px rgba(47,42,36,0.45)"></div>`,
+    html: `<div style="width:20px;height:20px;border-radius:50% 50% 50% 0;background:${color};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.22)"></div>`,
     iconSize: [20, 20],
     iconAnchor: [10, 20],
     popupAnchor: [0, -20],

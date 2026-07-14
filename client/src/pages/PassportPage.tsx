@@ -46,32 +46,32 @@ export default function PassportPage() {
   );
 
   return (
-    <div className="px-4 pt-6 pb-8">
+    <div className="px-5 pt-7 pb-8">
       <header className="mb-1">
-        <p className="text-sm text-ink-soft">{user?.username}’s</p>
-        <h1 className="font-display text-3xl">Travel Passport</h1>
-        <p className="mt-0.5 text-xs tracking-wide text-ink-soft">Your passport to the world</p>
+        <p className="text-sm font-medium text-teal">Welcome, {user?.username}</p>
+        <h1 className="mt-1 font-display text-[34px] leading-tight">Your passport</h1>
+        <p className="mt-1 text-sm text-ink-soft">Where will you leave your next mark?</p>
       </header>
 
       {places && (
-        <div className="mt-3 mb-6 flex gap-2" data-testid="stats-strip">
-          <div className="flex-1 rounded-xl border border-ink/10 bg-paper-light px-3 py-2.5">
-            <p className="font-display text-xl leading-none">
+        <div className="mt-5 mb-7 grid grid-cols-3 gap-2.5" data-testid="stats-strip">
+          <div className="rounded-2xl border border-black/4 bg-white px-3 py-3.5 shadow-[0_7px_24px_rgba(0,0,0,0.05)]">
+            <p className="font-display text-[21px] leading-none">
               {collected.length}
               <span className="text-sm text-ink-soft"> / {places.length}</span>
             </p>
-            <p className="mt-1 text-[11px] tracking-wide text-ink-soft uppercase">Stamps</p>
+            <p className="mt-1.5 text-[10px] font-semibold tracking-[0.06em] text-ink-soft uppercase">Stamps</p>
           </div>
-          <div className="flex-1 rounded-xl border border-ink/10 bg-paper-light px-3 py-2.5">
-            <p className="font-display text-xl leading-none">{countries.size}</p>
-            <p className="mt-1 text-[11px] tracking-wide text-ink-soft uppercase">Countries</p>
+          <div className="rounded-2xl border border-black/4 bg-white px-3 py-3.5 shadow-[0_7px_24px_rgba(0,0,0,0.05)]">
+            <p className="font-display text-[21px] leading-none">{countries.size}</p>
+            <p className="mt-1.5 text-[10px] font-semibold tracking-[0.06em] text-ink-soft uppercase">Countries</p>
           </div>
-          <div className="flex-1 rounded-xl border border-ink/10 bg-paper-light px-3 py-2.5">
-            <p className="font-display text-xl leading-none">
+          <div className="rounded-2xl border border-black/4 bg-white px-3 py-3.5 shadow-[0_7px_24px_rgba(0,0,0,0.05)]">
+            <p className="font-display text-[21px] leading-none">
               {continents.size}
               <span className="text-sm text-ink-soft"> / {CONTINENT_COUNT}</span>
             </p>
-            <p className="mt-1 text-[11px] tracking-wide text-ink-soft uppercase">Continents</p>
+            <p className="mt-1.5 text-[10px] font-semibold tracking-[0.06em] text-ink-soft uppercase">Continents</p>
           </div>
         </div>
       )}
@@ -82,7 +82,7 @@ export default function PassportPage() {
       )}
 
       {places && (
-        <div className="flex flex-col gap-3" data-testid="home-cards">
+        <div className="flex flex-col gap-3.5" data-testid="home-cards">
           {CATEGORY_CARDS.map((c, i) => {
             const all = places.filter((p) => p.category === c.category);
             const got = all.filter((p) => p.stamp).length;
@@ -98,21 +98,39 @@ export default function PassportPage() {
                 <Link
                   to={c.to}
                   data-testid={`home-card-${c.category}`}
-                  className="flex items-center gap-4 rounded-2xl border border-ink/10 bg-paper-light p-4"
+                  className="group flex items-center gap-4 rounded-[24px] border border-black/4 bg-white p-4.5 shadow-[0_10px_30px_rgba(0,0,0,0.06)] transition-shadow hover:shadow-[0_14px_36px_rgba(0,0,0,0.09)]"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-teal/10">
-                    <svg viewBox="0 0 24 24" className="h-7 w-7 fill-teal" aria-hidden>
+                  <div
+                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-[17px] ${
+                      c.category === 'landmark'
+                        ? 'bg-teal/10'
+                        : c.category === 'city'
+                          ? 'bg-mustard/12'
+                          : 'bg-olive/12'
+                    }`}
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      className={`h-7 w-7 ${
+                        c.category === 'landmark'
+                          ? 'fill-teal'
+                          : c.category === 'city'
+                            ? 'fill-mustard'
+                            : 'fill-olive'
+                      }`}
+                      aria-hidden
+                    >
                       <path d={c.icon} />
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-display text-xl">{c.title}</p>
-                    <p className="text-xs text-ink-soft">{c.blurb}</p>
-                    <p className="mt-0.5 text-xs text-ink-soft">
+                    <p className="font-display text-[20px]">{c.title}</p>
+                    <p className="mt-0.5 text-[13px] text-ink-soft">{c.blurb}</p>
+                    <p className="mt-1 text-[12px] font-medium text-teal">
                       {got} / {all.length} collected
                     </p>
                   </div>
-                  <span className="text-2xl text-ink-soft">›</span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-paper text-xl text-ink-soft transition-transform group-hover:translate-x-0.5">›</span>
                 </Link>
               </motion.div>
             );

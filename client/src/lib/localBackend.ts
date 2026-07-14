@@ -1,21 +1,26 @@
-// Browser-only backend for the static build (GitHub Pages demo mode).
-// Mirrors the REST API's paths and responses so the rest of the app is
-// unchanged; data lives in localStorage on this device. Selected at build
-// time via VITE_BACKEND=local (see api.ts).
+// Browser-only backend for the static GitHub Pages build. It mirrors the
+// REST API, including real sign-up/sign-in behavior and account isolation,
+// while keeping every byte on this device.
 import { COLLECT_RADIUS_M, PHOTO_RADIUS_M, haversineMeters } from './geo';
-import { idbClear, idbDelete, idbGet, idbSet } from './idb';
+import { idbDelete, idbGet, idbKeys, idbSet } from './idb';
 import { SEED_PLACES } from '../data/seedPlaces';
 import type { Place, Stamp, Stats, User } from '../types';
 
-const KEYS = {
-  profile: 'stampquest.profile',
-  stamps: 'stampquest.stamps',
-  places: 'stampquest.customPlaces',
+const GLOBAL_KEYS = {
+  accounts: 'stampquest.local.accounts.v2',
+  session: 'stampquest.local.session.v2',
 };
 
-// The profile photo itself lives in IndexedDB (same store as stamp photos),
-// keyed separately from any place id.
-const PROFILE_PHOTO_KEY = 'stampquest.profile-photo';
+const USERNAME_RE = /^[a-zA-Z0-9_]{3,24}$/;
+const PASSWORD_ITERATIONS = 150_000;
+
+interface LocalAccount {
+  id: number;
+  username: string;
+  passwordHash: string;
+  passwordSalt: string;
+  createdAt: string;
+}
 
 interface CustomPlace {
   id: string;
@@ -45,23 +50,80 @@ function store(key: string, value: unknown): void {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-function profile(): Omit<User, 'photoUrl'> {
-  let user = load<Omit<User, 'photoUrl'> | null>(KEYS.profile, null);
-  if (!user) {
-    user = {
-      id: 1,
-      username: 'traveler',
-      createdAt: new Date().toISOString(),
-    };
-    store(KEYS.profile, user);
-  }
-  return user;
+const accounts = () => load<LocalAccount[]>(GLOBAL_KEYS.accounts, []);
+const accountKey = (accountId: number, suffix: string) =>
+  `stampquest.local.account.${accountId}.${suffix}`;
+const stampsKey = (accountId: number) => accountKey(accountId, 'stamps');
+const placesKey = (accountId: number) => accountKey(accountId, 'customPlaces');
+const photoPrefix = (accountId: number) => accountKey(accountId, 'photo.');
+const profilePhotoKey = (accountId: number) => `${photoPrefix(accountId)}profile`;
+const stampPhotoKey = (accountId: number, placeId: string) =>
+  `${photoPrefix(accountId)}place.${placeId}`;
+
+const stamps = (accountId: number) => load<Record<string, Stamp>>(stampsKey(accountId), {});
+const customPlaces = (accountId: number) =>
+  load<CustomPlace[]>(placesKey(accountId), []);
+
+function activeAccount(): LocalAccount | null {
+  const accountId = load<number | null>(GLOBAL_KEYS.session, null);
+  return accountId === null ? null : (accounts().find((account) => account.id === accountId) ?? null);
 }
 
-const stamps = () => load<Record<string, Stamp>>(KEYS.stamps, {});
-const customPlaces = () => load<CustomPlace[]>(KEYS.places, []);
+function publicUser(account: LocalAccount, photoUrl: string | null): User {
+  return {
+    id: account.id,
+    username: account.username,
+    createdAt: account.createdAt,
+    photoUrl,
+  };
+}
 
-function toPlace(seedOrCustom: (typeof SEED_PLACES)[number] | CustomPlace, curated: boolean): Place {
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+function base64ToBuffer(value: string): ArrayBuffer {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes.buffer;
+}
+
+async function passwordHash(password: string, saltBase64: string): Promise<string> {
+  const material = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      hash: 'SHA-256',
+      salt: base64ToBuffer(saltBase64),
+      iterations: PASSWORD_ITERATIONS,
+    },
+    material,
+    256,
+  );
+  return bytesToBase64(new Uint8Array(bits));
+}
+
+function newSalt(): string {
+  return bytesToBase64(crypto.getRandomValues(new Uint8Array(16)));
+}
+
+function toPlace(
+  seedOrCustom: (typeof SEED_PLACES)[number] | CustomPlace,
+  curated: boolean,
+  stampMap: Record<string, Stamp>,
+): Place {
+  const seed = curated ? (seedOrCustom as (typeof SEED_PLACES)[number]) : null;
   return {
     id: seedOrCustom.id,
     name: seedOrCustom.name,
@@ -71,34 +133,33 @@ function toPlace(seedOrCustom: (typeof SEED_PLACES)[number] | CustomPlace, curat
     lng: seedOrCustom.lng,
     isCurated: curated,
     isMine: !curated,
-    artKey: curated ? (seedOrCustom as (typeof SEED_PLACES)[number]).artKey : null,
-    // custom places default to 'landmark', same as the real server
-    category: curated ? (seedOrCustom as (typeof SEED_PLACES)[number]).category : 'landmark',
+    artKey: seed?.artKey ?? null,
+    category: seed?.category ?? 'landmark',
+    state: seed?.state ?? null,
     createdAt: curated ? '' : (seedOrCustom as CustomPlace).createdAt,
-    stamp: stamps()[seedOrCustom.id] ?? null,
+    stamp: stampMap[seedOrCustom.id] ?? null,
   };
 }
 
-// Photos live in IndexedDB (localStorage's quota is too small for pictures);
-// in this mode photoUrl is the data URL itself.
-async function withPhoto(place: Place): Promise<Place> {
+async function withPhoto(accountId: number, place: Place): Promise<Place> {
   if (!place.stamp) return place;
-  const photo = await idbGet(place.id);
+  const photo = await idbGet(stampPhotoKey(accountId, place.id));
   return photo ? { ...place, stamp: { ...place.stamp, photoUrl: photo } } : place;
 }
 
-async function allPlaces(): Promise<Place[]> {
+async function allPlaces(accountId: number): Promise<Place[]> {
+  const stampMap = stamps(accountId);
   const bare = [
-    ...SEED_PLACES.map((s) => toPlace(s, true)),
-    ...customPlaces().map((c) => toPlace(c, false)),
+    ...SEED_PLACES.map((seed) => toPlace(seed, true, stampMap)),
+    ...customPlaces(accountId).map((place) => toPlace(place, false, stampMap)),
   ];
-  return Promise.all(bare.map(withPhoto));
+  return Promise.all(bare.map((place) => withPhoto(accountId, place)));
 }
 
-function stats(): Stats {
-  const collected = Object.keys(stamps());
+function stats(accountId: number): Stats {
+  const collected = Object.keys(stamps(accountId));
   const byId = new Map(
-    [...SEED_PLACES, ...customPlaces()].map((p) => [p.id, p.country] as const),
+    [...SEED_PLACES, ...customPlaces(accountId)].map((place) => [place.id, place.country] as const),
   );
   return {
     stampCount: collected.length,
@@ -106,9 +167,12 @@ function stats(): Stats {
   };
 }
 
-async function me(): Promise<LocalResult> {
-  const photoUrl = (await idbGet(PROFILE_PHOTO_KEY)) ?? null;
-  return { status: 200, data: { user: { ...profile(), photoUrl }, stats: stats() } };
+async function me(account: LocalAccount): Promise<LocalResult> {
+  const photoUrl = (await idbGet(profilePhotoKey(account.id))) ?? null;
+  return {
+    status: 200,
+    data: { user: publicUser(account, photoUrl), stats: stats(account.id) },
+  };
 }
 
 const ok = (data: unknown, status = 200): LocalResult => ({ status, data });
@@ -117,10 +181,19 @@ const fail = (status: number, error: string, extra?: Record<string, unknown>): L
   data: { error, ...extra },
 });
 
-/** Clears everything this device knows — used by the demo-mode reset. */
-export function resetLocalData(): void {
-  Object.values(KEYS).forEach((k) => localStorage.removeItem(k));
-  void idbClear();
+/** Clears the signed-in account's passport while preserving every account. */
+export async function resetLocalData(): Promise<void> {
+  const account = activeAccount();
+  if (!account) return;
+  localStorage.removeItem(stampsKey(account.id));
+  localStorage.removeItem(placesKey(account.id));
+  const keys = await idbKeys();
+  const prefix = photoPrefix(account.id);
+  await Promise.all(
+    keys
+      .filter((key): key is string => typeof key === 'string' && key.startsWith(prefix))
+      .map((key) => idbDelete(key)),
+  );
 }
 
 export async function localRequest(
@@ -130,30 +203,83 @@ export async function localRequest(
 ): Promise<LocalResult> {
   const b = (body ?? {}) as Record<string, unknown>;
 
-  if (path === '/api/auth/me' || path === '/api/auth/register' || path === '/api/auth/login') {
-    return me();
+  if (path === '/api/auth/register' && method === 'POST') {
+    const { username, password } = b;
+    if (typeof username !== 'string' || !USERNAME_RE.test(username)) {
+      return fail(400, 'INVALID_USERNAME');
+    }
+    if (typeof password !== 'string' || password.length < 8) {
+      return fail(400, 'WEAK_PASSWORD');
+    }
+    const existing = accounts().some(
+      (account) => account.username.toLowerCase() === username.toLowerCase(),
+    );
+    if (existing) return fail(409, 'USERNAME_TAKEN');
+
+    const allAccounts = accounts();
+    const salt = newSalt();
+    const account: LocalAccount = {
+      id: allAccounts.reduce((max, candidate) => Math.max(max, candidate.id), 0) + 1,
+      username,
+      passwordHash: await passwordHash(password, salt),
+      passwordSalt: salt,
+      createdAt: new Date().toISOString(),
+    };
+    store(GLOBAL_KEYS.accounts, [...allAccounts, account]);
+    store(GLOBAL_KEYS.session, account.id);
+    const result = await me(account);
+    return { ...result, status: 201 };
   }
-  if (path === '/api/auth/logout') return ok({ ok: true });
+
+  if (path === '/api/auth/login' && method === 'POST') {
+    const { username, password } = b;
+    if (typeof username !== 'string' || typeof password !== 'string') {
+      return fail(400, 'INVALID_REQUEST');
+    }
+    const account = accounts().find(
+      (candidate) => candidate.username.toLowerCase() === username.toLowerCase(),
+    );
+    if (!account || (await passwordHash(password, account.passwordSalt)) !== account.passwordHash) {
+      return fail(401, 'INVALID_CREDENTIALS');
+    }
+    store(GLOBAL_KEYS.session, account.id);
+    return me(account);
+  }
+
+  if (path === '/api/auth/logout' && method === 'POST') {
+    localStorage.removeItem(GLOBAL_KEYS.session);
+    return ok({ ok: true });
+  }
+
+  const account = activeAccount();
+  if (!account) return fail(401, 'AUTH_REQUIRED');
+
+  if (path === '/api/auth/me' && method === 'GET') return me(account);
 
   if (path === '/api/auth/me/photo' && method === 'PUT') {
     const dataUrl = b.photo;
     if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
       return fail(400, 'INVALID_PHOTO');
     }
-    await idbSet(PROFILE_PHOTO_KEY, dataUrl);
-    return ok({ user: { ...profile(), photoUrl: dataUrl } });
+    await idbSet(profilePhotoKey(account.id), dataUrl);
+    return ok({ user: publicUser(account, dataUrl) });
   }
 
-  if (path === '/api/places' && method === 'GET') return ok({ places: await allPlaces() });
+  if (path === '/api/places' && method === 'GET') {
+    return ok({ places: await allPlaces(account.id) });
+  }
 
   if (path === '/api/places' && method === 'POST') {
     const { name, country, description, lat, lng } = b;
     if (typeof name !== 'string' || !name.trim()) return fail(400, 'INVALID_NAME');
     if (typeof country !== 'string' || !country.trim()) return fail(400, 'INVALID_COUNTRY');
     if (
-      typeof lat !== 'number' || typeof lng !== 'number' ||
-      !Number.isFinite(lat) || !Number.isFinite(lng) ||
-      Math.abs(lat) > 90 || Math.abs(lng) > 180
+      typeof lat !== 'number' ||
+      typeof lng !== 'number' ||
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      Math.abs(lat) > 90 ||
+      Math.abs(lng) > 180
     ) {
       return fail(400, 'INVALID_COORDINATES');
     }
@@ -166,46 +292,51 @@ export async function localRequest(
       lng,
       createdAt: new Date().toISOString(),
     };
-    store(KEYS.places, [...customPlaces(), place]);
-    return ok({ place: toPlace(place, false) }, 201);
+    store(placesKey(account.id), [...customPlaces(account.id), place]);
+    return ok({ place: toPlace(place, false, stamps(account.id)) }, 201);
   }
 
   const detail = path.match(/^\/api\/places\/([^/]+)$/);
   if (detail) {
-    const place = (await allPlaces()).find((p) => p.id === detail[1]);
+    const place = (await allPlaces(account.id)).find((candidate) => candidate.id === detail[1]);
     if (!place) return fail(404, 'PLACE_NOT_FOUND');
     if (method === 'GET') return ok({ place });
     if (method === 'DELETE') {
       if (place.isCurated) return fail(404, 'PLACE_NOT_FOUND');
-      store(KEYS.places, customPlaces().filter((p) => p.id !== place.id));
-      const s = stamps();
-      delete s[place.id];
-      store(KEYS.stamps, s);
-      await idbDelete(place.id);
+      store(
+        placesKey(account.id),
+        customPlaces(account.id).filter((candidate) => candidate.id !== place.id),
+      );
+      const stampMap = stamps(account.id);
+      delete stampMap[place.id];
+      store(stampsKey(account.id), stampMap);
+      await idbDelete(stampPhotoKey(account.id, place.id));
       return ok({ ok: true });
     }
   }
 
   const photo = path.match(/^\/api\/places\/([^/]+)\/photo$/);
   if (photo && method === 'PUT') {
-    const s = stamps();
-    if (!s[photo[1]]) return fail(409, 'NOT_COLLECTED');
+    const stampMap = stamps(account.id);
+    if (!stampMap[photo[1]]) return fail(409, 'NOT_COLLECTED');
     const dataUrl = b.photo;
     if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
       return fail(400, 'INVALID_PHOTO');
     }
-    await idbSet(photo[1], dataUrl);
-    return ok({ stamp: { ...s[photo[1]], photoUrl: dataUrl } });
+    await idbSet(stampPhotoKey(account.id, photo[1]), dataUrl);
+    return ok({ stamp: { ...stampMap[photo[1]], photoUrl: dataUrl } });
   }
 
-  // Photo-evidence collection: EXIF GPS only in demo mode (the landmark
-  // vision check needs a server, which the static build doesn't have).
+  // Photo-evidence collection uses EXIF GPS in static mode. Vision matching
+  // remains a server-only capability.
   const collectPhoto = path.match(/^\/api\/places\/([^/]+)\/collect-photo$/);
   if (collectPhoto && method === 'POST') {
-    const place = (await allPlaces()).find((p) => p.id === collectPhoto[1]);
+    const place = (await allPlaces(account.id)).find(
+      (candidate) => candidate.id === collectPhoto[1],
+    );
     if (!place) return fail(404, 'PLACE_NOT_FOUND');
-    const s = stamps();
-    if (s[place.id]) return fail(409, 'ALREADY_COLLECTED');
+    const stampMap = stamps(account.id);
+    if (stampMap[place.id]) return fail(409, 'ALREADY_COLLECTED');
     const dataUrl = b.photo;
     if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
       return fail(400, 'INVALID_PHOTO');
@@ -223,17 +354,17 @@ export async function localRequest(
       placeId: place.id,
       collectedAt: new Date().toISOString(),
       distanceM,
-      photoUrl: null, // photo lives in IndexedDB, not localStorage
+      photoUrl: null,
     };
-    s[place.id] = stamp;
-    store(KEYS.stamps, s);
-    await idbSet(place.id, dataUrl);
+    stampMap[place.id] = stamp;
+    store(stampsKey(account.id), stampMap);
+    await idbSet(stampPhotoKey(account.id, place.id), dataUrl);
     return ok({ stamp: { ...stamp, photoUrl: dataUrl } }, 201);
   }
 
   const collect = path.match(/^\/api\/places\/([^/]+)\/collect$/);
   if (collect && method === 'POST') {
-    const place = (await allPlaces()).find((p) => p.id === collect[1]);
+    const place = (await allPlaces(account.id)).find((candidate) => candidate.id === collect[1]);
     if (!place) return fail(404, 'PLACE_NOT_FOUND');
     const { lat, lng } = b;
     if (typeof lat !== 'number' || typeof lng !== 'number') {
@@ -243,8 +374,8 @@ export async function localRequest(
     if (distanceM > COLLECT_RADIUS_M) {
       return fail(403, 'TOO_FAR', { distanceM: Math.round(distanceM) });
     }
-    const s = stamps();
-    if (s[place.id]) return fail(409, 'ALREADY_COLLECTED');
+    const stampMap = stamps(account.id);
+    if (stampMap[place.id]) return fail(409, 'ALREADY_COLLECTED');
     const stamp: Stamp = {
       id: crypto.randomUUID(),
       placeId: place.id,
@@ -252,8 +383,8 @@ export async function localRequest(
       distanceM,
       photoUrl: null,
     };
-    s[place.id] = stamp;
-    store(KEYS.stamps, s);
+    stampMap[place.id] = stamp;
+    store(stampsKey(account.id), stampMap);
     return ok({ stamp }, 201);
   }
 

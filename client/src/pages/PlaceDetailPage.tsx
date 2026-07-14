@@ -146,7 +146,7 @@ export default function PlaceDetailPage() {
       <motion.button
         type="button"
         onClick={() => navigate(-1)}
-        whileHover={{ backgroundColor: 'rgba(47, 42, 36, 0.06)' }}
+        whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.05)' }}
         whileTap={{ scale: 0.88 }}
         transition={{ type: 'spring', stiffness: 500, damping: 28 }}
         className="mb-2 flex h-11 w-11 items-center justify-center rounded-full text-2xl"
@@ -168,7 +168,7 @@ export default function PlaceDetailPage() {
             <StampSVG
               subject={place}
               photoUrl={place.stamp?.photoUrl}
-              className="w-full drop-shadow-[0_4px_10px_rgba(47,42,36,0.3)]"
+              className="w-full drop-shadow-[0_6px_14px_rgba(0,0,0,0.2)]"
             />
             <span className="pointer-events-none absolute right-2 bottom-2 flex h-8 w-8 items-center justify-center rounded-full bg-ink/75 shadow">
               <svg viewBox="0 0 24 24" className="h-4 w-4 fill-paper-light" aria-hidden>
@@ -180,7 +180,7 @@ export default function PlaceDetailPage() {
           <StampSVG
             subject={place}
             photoUrl={place.stamp?.photoUrl}
-            className="w-full opacity-60 grayscale contrast-[0.85]"
+            className="w-full saturate-[0.88] drop-shadow-[0_6px_14px_rgba(0,0,0,0.16)]"
           />
         )}
       </div>

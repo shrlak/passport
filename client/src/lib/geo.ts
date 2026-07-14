@@ -1,7 +1,8 @@
 // Mirrors server/src/geo.ts. The client values only drive UI copy and
 // gating; the server checks are authoritative.
 export const COLLECT_RADIUS_M = 500;
-export const PHOTO_RADIUS_M = 5000;
+// Ten statute miles, expressed in meters for all distance calculations.
+export const PHOTO_RADIUS_M = 16093.44;
 
 const EARTH_RADIUS_M = 6371000;
 

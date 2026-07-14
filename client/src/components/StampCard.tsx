@@ -19,11 +19,11 @@ export function StampCard({ place, index = 0 }: { place: Place; index?: number }
       >
         <Link
           to={`/place/${place.id}`}
-          className="block"
+          className="group block"
           data-testid="stamp-card"
           data-collected={collected}
         >
-          <div className="relative" style={{ transform: `rotate(${rotation}deg)` }}>
+          <div className="relative transition-transform duration-300 group-hover:scale-[1.025]" style={{ transform: `rotate(${rotation}deg)` }}>
             <StampSVG
               subject={place}
               photoUrl={place.stamp?.photoUrl}
@@ -42,13 +42,17 @@ export function StampCard({ place, index = 0 }: { place: Place; index?: number }
               {place.state}
             </p>
           )}
-          <p className="mt-1.5 text-center text-[11px] text-ink-soft">
-            {collected
-              ? place.stamp!.photoUrl
-                ? `Collected ${formatCollectedDate(place.stamp!.collectedAt)}`
-                : 'Collected · Add your photo'
-              : 'Locked · Visit to collect'}
-          </p>
+          <div className="mt-1.5 text-center">
+            <p className={`inline-flex rounded-full px-2.5 py-1 text-[9px] font-bold tracking-[0.02em] ${
+              collected ? 'bg-olive/10 text-[#218345]' : 'bg-black/5 text-ink-soft'
+            }`}>
+              {collected
+                ? place.stamp!.photoUrl
+                  ? `Collected ${formatCollectedDate(place.stamp!.collectedAt)}`
+                  : 'Collected · Add photo'
+                : 'Locked · Visit to collect'}
+            </p>
+          </div>
         </Link>
       </motion.div>
     </div>

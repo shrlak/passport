@@ -16,7 +16,7 @@ export default function PlaceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { place, error, refresh } = usePlace(id);
-  const { position, error: geoError, loading: locating, request } = useGeo();
+  const { position } = useGeo();
   const { refreshMe } = useAuth();
   const { units } = useUnits();
   const [collectError, setCollectError] = useState<string | null>(null);
@@ -141,74 +141,101 @@ export default function PlaceDetailPage() {
     navigate('/', { replace: true });
   };
 
-  return (
-    <div className="px-4 pt-4 pb-8">
-      <motion.button
-        type="button"
-        onClick={() => navigate(-1)}
-        whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.05)' }}
-        whileTap={{ scale: 0.88 }}
-        transition={{ type: 'spring', stiffness: 500, damping: 28 }}
-        className="mb-2 flex h-11 w-11 items-center justify-center rounded-full text-2xl"
-        aria-label="Back"
-      >
-        ‹
-      </motion.button>
+  const heroTone =
+    place.category === 'city'
+      ? 'from-[#ffdfa8] via-[#fff0d3] to-[#fff9ee]'
+      : place.category === 'us-state'
+        ? 'from-[#ccefd7] via-[#e8f8ed] to-[#f8fcf9]'
+        : 'from-[#c9e5ff] via-[#e7f4ff] to-[#f9fcff]';
 
-      <div className={`relative mx-auto w-3/4 max-w-72 ${justCollected ? 'animate-stamp-down' : ''}`}>
-        {collected ? (
-          <button
+  return (
+    <div className="px-4 pt-3 pb-8">
+      <section className={`relative overflow-hidden rounded-[34px] bg-gradient-to-br ${heroTone} px-5 pt-5 pb-7 shadow-[0_22px_62px_rgba(24,32,52,0.13)]`}>
+        <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full border-[34px] border-white/30" />
+        <svg className="pointer-events-none absolute inset-x-0 top-20 h-32 w-full opacity-30" viewBox="0 0 360 130" preserveAspectRatio="none" aria-hidden>
+          <path d="M-15 105 C58 26 122 145 201 60 S300 16 379 55" fill="none" stroke="#1d1d1f" strokeWidth="1.1" strokeDasharray="4 8" className="animate-route-dash" />
+        </svg>
+
+        <div className="relative z-10 flex items-center justify-between">
+          <motion.button
             type="button"
-            onClick={() => uploadInput.current?.click()}
-            disabled={savingPhoto}
-            className="block w-full text-left transition-transform active:scale-[0.98] disabled:active:scale-100"
-            aria-label={place.stamp!.photoUrl ? 'Replace stamp photo' : 'Add a photo for this stamp'}
-            data-testid="stamp-photo-tap-target"
+            onClick={() => navigate(-1)}
+            whileTap={{ scale: 0.88 }}
+            className="flex h-10 w-10 items-center justify-center rounded-[14px] border border-white/70 bg-white/65 text-2xl shadow-sm backdrop-blur-xl"
+            aria-label="Back"
           >
+            ‹
+          </motion.button>
+          <span className={`rounded-full px-3 py-1.5 text-[10px] font-bold tracking-[0.08em] uppercase ${collected ? 'bg-ink text-white' : 'border border-white/70 bg-white/55 text-ink-soft backdrop-blur-xl'}`}>
+            {collected ? 'In your passport' : 'Locked stamp'}
+          </span>
+        </div>
+
+        <div className={`relative z-10 mx-auto mt-3 w-[68%] max-w-64 ${justCollected ? 'animate-stamp-down' : ''}`}>
+          {collected ? (
+            <button
+              type="button"
+              onClick={() => uploadInput.current?.click()}
+              disabled={savingPhoto}
+              className="block w-full text-left transition-transform active:scale-[0.98] disabled:active:scale-100"
+              aria-label={place.stamp!.photoUrl ? 'Replace stamp photo' : 'Add a photo for this stamp'}
+              data-testid="stamp-photo-tap-target"
+            >
+              <StampSVG
+                subject={place}
+                photoUrl={place.stamp?.photoUrl}
+                className="w-full drop-shadow-[0_14px_24px_rgba(24,32,52,0.22)]"
+              />
+              <span className="pointer-events-none absolute right-1 bottom-1 flex h-9 w-9 items-center justify-center rounded-[13px] border border-white/25 bg-ink/85 shadow-lg backdrop-blur-xl">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-white" aria-hidden>
+                  <path d="M4 7h3.2L9 4.5h6L16.8 7H20a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Zm8 2.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Zm0 1.8a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z" />
+                </svg>
+              </span>
+            </button>
+          ) : (
             <StampSVG
               subject={place}
               photoUrl={place.stamp?.photoUrl}
-              className="w-full drop-shadow-[0_6px_14px_rgba(0,0,0,0.2)]"
+              className="w-full saturate-[0.9] drop-shadow-[0_14px_24px_rgba(24,32,52,0.18)]"
             />
-            <span className="pointer-events-none absolute right-2 bottom-2 flex h-8 w-8 items-center justify-center rounded-full bg-ink/75 shadow">
-              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-paper-light" aria-hidden>
-                <path d="M4 7h3.2L9 4.5h6L16.8 7H20a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Zm8 2.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Zm0 1.8a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z" />
-              </svg>
+          )}
+        </div>
+
+        <div className="relative z-10 mt-4 text-center">
+          <p className="eyebrow text-ink-soft">
+            {place.category === 'us-state' && place.state ? place.state : place.country}
+          </p>
+          <h1 className="mt-1.5 font-display text-[31px] leading-[1.05]">{place.name}</h1>
+          {place.description && (
+            <p className="mx-auto mt-3 max-w-80 text-[13px] leading-relaxed text-ink-soft">
+              {place.description}
+            </p>
+          )}
+          {distance !== null && (
+            <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/58 px-3 py-1.5 text-[10px] font-bold text-ink-soft backdrop-blur-xl">
+              <span className="h-1.5 w-1.5 rounded-full bg-teal" />
+              {formatDistance(distance, units)} from your saved location
             </span>
-          </button>
-        ) : (
-          <StampSVG
-            subject={place}
-            photoUrl={place.stamp?.photoUrl}
-            className="w-full saturate-[0.88] drop-shadow-[0_6px_14px_rgba(0,0,0,0.16)]"
-          />
-        )}
-      </div>
+          )}
+        </div>
+      </section>
 
-      <h1 className="mt-5 text-center font-display text-3xl">{place.name}</h1>
-      <p className="text-center text-sm tracking-widest text-ink-soft uppercase">{place.country}</p>
-      {place.description && (
-        <p className="mx-auto mt-3 max-w-80 text-center text-sm leading-relaxed text-ink-soft">
-          {place.description}
-        </p>
-      )}
-
-      <div className="mt-6 flex flex-col items-center gap-3">
+      <div className="mt-3 flex flex-col items-center gap-3 rounded-[28px] border border-white/70 bg-white/66 px-4 py-5 shadow-[0_16px_46px_rgba(24,32,52,0.09)] backdrop-blur-xl">
         {collected ? (
           <>
-            <p
-              className="mx-auto max-w-72 text-center font-display text-teal"
-              data-testid="collected-line"
-            >
-              On {formatCollectedDate(place.stamp!.collectedAt)}, you added the {place.name} stamp
-              to your collection.
-            </p>
+            <div className="w-full rounded-[20px] bg-ink px-4 py-4 text-center text-white">
+              <p className="eyebrow text-white/45">Stamped into your story</p>
+              <p className="mx-auto mt-1.5 max-w-72 font-display text-[17px] leading-snug" data-testid="collected-line">
+                On {formatCollectedDate(place.stamp!.collectedAt)}, you added the {place.name} stamp
+                to your collection.
+              </p>
+            </div>
             {!place.stamp!.photoUrl && (
-              <p className="max-w-72 text-center text-sm text-ink-soft">
+              <p className="max-w-72 text-center text-[13px] leading-relaxed text-ink-soft">
                 Make it yours — tap the stamp above to take or upload a photo of this place.
               </p>
             )}
-            <div className="flex gap-2">
+            <div className="grid w-full grid-cols-2 gap-2">
               <Button
                 variant="outline"
                 disabled={savingPhoto}
@@ -251,18 +278,21 @@ export default function PlaceDetailPage() {
           </>
         ) : !position ? (
           <>
-            <Button onClick={request} disabled={locating} data-testid="enable-location">
-              {locating ? 'Locating…' : 'Enable location to collect'}
+            <Button disabled className="w-full" data-testid="collect-button">
+              Location unavailable
             </Button>
-            {geoError && <p className="max-w-72 text-center text-sm text-terracotta">{geoError}</p>}
+            <p className="max-w-72 text-center text-[13px] leading-relaxed text-ink-soft">
+              Location was not enabled when you signed in. You can still collect this stamp with
+              a photo below.
+            </p>
           </>
         ) : inRange ? (
-          <Button onClick={collect} disabled={collecting} data-testid="collect-button">
+          <Button className="w-full" onClick={collect} disabled={collecting} data-testid="collect-button">
             {collecting ? 'Stamping…' : 'Collect stamp'}
           </Button>
         ) : (
           <>
-            <Button disabled data-testid="collect-button">
+            <Button disabled className="w-full" data-testid="collect-button">
               Collect stamp
             </Button>
             <p className="text-sm text-ink-soft" data-testid="too-far-line">
@@ -278,16 +308,21 @@ export default function PlaceDetailPage() {
         )}
 
         {!collected && (
-          <div className="mt-4 w-full max-w-80 rounded-2xl border border-ink/10 bg-paper-light p-4 text-center">
-            <h2 className="font-display text-lg">Been here before?</h2>
-            <p className="mt-1 text-sm text-ink-soft">
+          <div className="mt-2 w-full overflow-hidden rounded-[22px] border border-black/5 bg-[linear-gradient(145deg,#fff4df,#ffffff)] p-4 text-center shadow-sm">
+            <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-[13px] bg-coral/12 text-coral">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden>
+                <path d="M4 7h3.2L9 4.5h6L16.8 7H20a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Zm8 2.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Z" />
+              </svg>
+            </span>
+            <h2 className="mt-2 font-display text-[19px]">Already part of your story?</h2>
+            <p className="mx-auto mt-1 max-w-72 text-[12px] leading-relaxed text-ink-soft">
               Upload a photo you took at this place. If its location info matches (within{' '}
               {formatDistance(PHOTO_RADIUS_M, units)}) — or the landmark itself is recognized — the
               stamp is yours, with your photo as the art.
             </p>
             <Button
               variant="outline"
-              className="mt-3"
+              className="mt-3 w-full"
               disabled={verifyingProof}
               onClick={() => proofInput.current?.click()}
               data-testid="collect-with-photo"
@@ -312,7 +347,7 @@ export default function PlaceDetailPage() {
       </div>
 
       {place.isMine && (
-        <div className="mt-10 text-center">
+        <div className="mt-6 text-center">
           <button
             type="button"
             onClick={removePlace}

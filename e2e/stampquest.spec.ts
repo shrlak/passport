@@ -29,6 +29,13 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
 
+  // Location is requested once, immediately after authentication, then kept
+  // for the account until sign-out instead of being requested place by place.
+  await expect(page.getByTestId('location-onboarding')).toBeVisible();
+  await page.getByTestId('location-enable').click();
+  await expect(page.getByTestId('location-onboarding')).toHaveCount(0);
+  await expect(page.getByTestId('topbar-home')).toContainText('Location ready');
+
   // home landing page: stats strip + three category cards
   await expect(page.getByTestId('stats-strip')).toBeVisible();
   await expect(page.getByTestId('stats-strip')).toContainText(`0 / ${CURATED_COUNT}`);
@@ -57,7 +64,6 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   await page.getByTestId('landmark-search').fill('Eiffel');
   await page.locator('[data-testid="landmark-cards"] [data-testid="stamp-card"]').first().click();
   const eiffelUrl = page.url();
-  await page.getByTestId('enable-location').click();
   await page.getByTestId('collect-button').click();
   await expect(page.getByTestId('collected-line')).toContainText(
     'you added the Eiffel Tower stamp to your collection',
@@ -87,6 +93,8 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   await page.reload();
   await expect(page.getByTestId('stats-strip')).toContainText(`1 / ${CURATED_COUNT}`);
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByTestId('location-onboarding')).toHaveCount(0);
+  await expect(page.getByTestId('topbar-home')).toContainText('Location ready');
   await page.goto(eiffelUrl);
   await expect(page.getByTestId('collected-line')).toBeVisible();
   await expect(page.getByTestId('stamp-photo')).toBeVisible();
@@ -118,8 +126,7 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   await expect(page.getByTestId('add-place-modal')).toBeVisible();
   await page.getByTestId('place-name').fill('Café de Flore');
   await page.getByTestId('place-country').fill('France');
-  await page.getByTestId('use-my-location').click();
-  await expect(page.getByTestId('use-my-location')).toContainText('Using your location');
+  await expect(page.getByTestId('use-my-location')).toContainText('Using your saved location');
   await page.getByTestId('save-place').click();
   await expect(page.getByTestId('add-place-modal')).toHaveCount(0);
   await page.getByTestId('collect-button').click();
@@ -161,14 +168,21 @@ test('register, collect at the Eiffel Tower, add a custom place', async ({ page 
   // Sign-out closes the account session and restores the login gate.
   await page.getByTestId('sign-out').click();
   await expect(page).toHaveURL(/\/auth$/);
+  expect(
+    await page.evaluate(() => localStorage.getItem('stampquest.location-session.v1')),
+  ).toBeNull();
 });
 
 test('proximity is enforced server-side, not just in the UI', async ({ page, context }) => {
   // sign in fresh (also exercises the login flow)
+  await context.setGeolocation(NYC);
   await page.goto('/auth');
   await page.getByTestId('auth-username').fill(username);
   await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
+  await expect(page.getByTestId('location-onboarding')).toBeVisible();
+  await page.getByTestId('location-enable').click();
+  await expect(page.getByTestId('location-onboarding')).toHaveCount(0);
   await expect(page.getByTestId('stats-strip')).toBeVisible();
 
   // bypass the UI: POST NYC coordinates for the Colosseum directly
@@ -188,9 +202,7 @@ test('proximity is enforced server-side, not just in the UI', async ({ page, con
   expect(result.body.distanceM).toBeGreaterThan(1_000_000);
 
   // and the UI mirrors it: from NYC the button is disabled with the distance shown
-  await context.setGeolocation(NYC);
   await page.goto(`/place/${result.placeId}`);
-  await page.getByTestId('enable-location').click();
   await expect(page.getByTestId('collect-button')).toBeDisabled();
   await expect(page.getByTestId('too-far-line')).toContainText('Get within 500 m');
   await page.screenshot({ path: shot('07-too-far') });
@@ -202,6 +214,9 @@ test('a photo with matching EXIF location collects a stamp remotely', async ({ p
   await page.getByTestId('auth-username').fill(username);
   await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
+  await expect(page.getByTestId('location-onboarding')).toBeVisible();
+  await page.getByTestId('location-skip').click();
+  await expect(page.getByTestId('location-onboarding')).toHaveCount(0);
   await expect(page.getByTestId('stats-strip')).toBeVisible();
 
   const png = `data:image/png;base64,${TEST_PNG_BASE64}`;

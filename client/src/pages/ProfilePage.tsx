@@ -40,30 +40,48 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="px-5 pt-7 pb-8">
-      <h1 className="font-display text-[34px] leading-tight">Profile</h1>
-      <p className="mt-1 text-sm text-ink-soft">Your account and travel preferences</p>
+    <div className="px-4 pt-3 pb-8">
+      <div className="mb-4 px-1">
+        <p className="eyebrow text-teal">Traveler identity</p>
+        <h1 className="mt-1 font-display text-[36px] leading-tight">Your profile</h1>
+      </div>
       <motion.div
-        className="mt-5 flex items-center gap-4 rounded-[24px] border border-black/4 bg-white p-4.5 shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
+        className="relative overflow-hidden rounded-[32px] bg-midnight p-5 text-white shadow-[0_24px_70px_rgba(20,25,39,0.25)]"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       >
-        <button
-          type="button"
-          onClick={() => photoInput.current?.click()}
-          disabled={savingPhoto}
-          className="relative shrink-0 rounded-full transition-transform active:scale-95 disabled:active:scale-100"
-          aria-label={user?.photoUrl ? 'Replace profile photo' : 'Add a profile photo'}
-          data-testid="profile-photo-tap-target"
-        >
-          <Avatar user={user} size={64} />
-          <span className="pointer-events-none absolute -right-1 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-teal shadow">
-            <svg viewBox="0 0 24 24" className="h-3 w-3 fill-white" aria-hidden>
-              <path d="M4 7h3.2L9 4.5h6L16.8 7H20a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Zm8 2.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Zm0 1.8a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z" />
-            </svg>
-          </span>
-        </button>
+        <div className="pointer-events-none absolute -top-24 -right-14 h-64 w-64 rounded-full bg-[radial-gradient(circle,#2f7fcc_0%,#254a72_38%,transparent_70%)] opacity-75" />
+        <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-[radial-gradient(circle,#d67453_0%,#7e4638_38%,transparent_70%)] opacity-50" />
+        <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-25" viewBox="0 0 360 220" preserveAspectRatio="none" aria-hidden>
+          <path d="M-20 170 C70 80 123 206 205 112 S307 46 382 82" fill="none" stroke="white" strokeWidth="1" strokeDasharray="4 8" className="animate-route-dash" />
+        </svg>
+
+        <div className="relative z-10 flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => photoInput.current?.click()}
+            disabled={savingPhoto}
+            className="relative shrink-0 rounded-full transition-transform active:scale-95 disabled:active:scale-100"
+            aria-label={user?.photoUrl ? 'Replace profile photo' : 'Add a profile photo'}
+            data-testid="profile-photo-tap-target"
+          >
+            <span className="block rounded-full border-2 border-white/30 p-1 shadow-xl">
+              <Avatar user={user} size={68} />
+            </span>
+            <span className="pointer-events-none absolute -right-1 -bottom-1 flex h-7 w-7 items-center justify-center rounded-[10px] border-2 border-midnight bg-white text-ink shadow">
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current" aria-hidden>
+                <path d="M4 7h3.2L9 4.5h6L16.8 7H20a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Zm8 2.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Z" />
+              </svg>
+            </span>
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="eyebrow text-white/45">Passport holder</p>
+            <p className="mt-1 truncate font-display text-[25px]">{user?.username}</p>
+            <p className="mt-1 text-[12px] text-white/55">Building a world of personal stamps.</p>
+            {photoError && <p className="mt-1 text-xs text-[#ff9b90]">{photoError}</p>}
+          </div>
+        </div>
         <input
           ref={photoInput}
           type="file"
@@ -72,24 +90,22 @@ export default function ProfilePage() {
           onChange={onPhotoPicked}
           data-testid="profile-photo-input"
         />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-[21px]">{user?.username}</p>
-          <div className="mt-2 flex gap-4 text-sm">
-            <p>
-              <span className="font-display text-lg">{stats?.stampCount ?? 0}</span>{' '}
-              <span className="text-ink-soft">stamps</span>
-            </p>
-            <p>
-              <span className="font-display text-lg">{stats?.countryCount ?? 0}</span>{' '}
-              <span className="text-ink-soft">countries</span>
-            </p>
+
+        <div className="relative z-10 mt-5 grid grid-cols-2 divide-x divide-white/12 rounded-[18px] border border-white/10 bg-white/8 py-3 backdrop-blur-xl">
+          <div className="text-center">
+            <p className="font-display text-[23px]">{stats?.stampCount ?? 0}</p>
+            <p className="eyebrow mt-1 text-white/40">Stamps</p>
           </div>
-          {photoError && <p className="mt-1 text-xs text-terracotta">{photoError}</p>}
+          <div className="text-center">
+            <p className="font-display text-[23px]">{stats?.countryCount ?? 0}</p>
+            <p className="eyebrow mt-1 text-white/40">Countries</p>
+          </div>
         </div>
       </motion.div>
 
-      <div className="mt-3.5 flex items-center justify-between rounded-[24px] border border-black/4 bg-white p-4.5 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+      <div className="glass-panel mt-3.5 flex items-center justify-between rounded-[24px] p-4.5">
         <div>
+          <p className="eyebrow text-ink-soft">Preference</p>
           <p className="font-display text-[17px]">Units</p>
           <p className="text-xs text-ink-soft">Distances shown around the app</p>
         </div>
@@ -101,7 +117,7 @@ export default function ProfilePage() {
               onClick={() => setUnits(u)}
               data-testid={`units-${u}`}
               className={`rounded-xl px-3 py-1.5 text-xs font-semibold capitalize transition-all ${
-                units === u ? 'bg-white text-ink shadow-sm' : 'text-ink-soft'
+                units === u ? 'bg-ink text-white shadow-sm' : 'text-ink-soft'
               }`}
             >
               {u}
@@ -110,10 +126,13 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <h2 className="mt-7 mb-3 font-display text-[21px]">
-        Collected stamps{' '}
-        <span className="font-sans text-sm text-ink-soft">({collected.length})</span>
-      </h2>
+      <div className="mt-7 mb-3 flex items-end justify-between px-1">
+        <div>
+          <p className="eyebrow text-ink-soft">Your album</p>
+          <h2 className="mt-1 font-display text-[23px]">Collected stamps</h2>
+        </div>
+        <span className="text-xs font-semibold text-ink-soft">{collected.length} total</span>
+      </div>
       {collected.length === 0 ? (
         <p className="text-sm text-ink-soft">
           Nothing collected yet — head to{' '}
@@ -123,14 +142,19 @@ export default function ProfilePage() {
           and start stamping your passport.
         </p>
       ) : (
-        <div className="grid grid-cols-3 gap-x-3 gap-y-4 pb-2" data-testid="collected-grid">
-          {collected.map((p, i) => (
-            <StampCard key={p.id} place={p} index={i} />
-          ))}
+        <div className="rounded-[26px] border border-white/70 bg-white/48 p-3 shadow-[0_14px_40px_rgba(24,32,52,0.07)] backdrop-blur-lg">
+          <div className="grid grid-cols-3 gap-x-3 gap-y-4 pb-2" data-testid="collected-grid">
+            {collected.map((p, i) => (
+              <StampCard key={p.id} place={p} index={i} />
+            ))}
+          </div>
         </div>
       )}
 
-      <h2 className="mt-7 mb-3 font-display text-[21px]">My places</h2>
+      <div className="mt-7 mb-3 px-1">
+        <p className="eyebrow text-ink-soft">Made by you</p>
+        <h2 className="mt-1 font-display text-[23px]">My places</h2>
+      </div>
       {mine.length === 0 ? (
         <p className="text-sm text-ink-soft">
           None yet — tap the <span className="font-medium">+</span> button to add a place you
@@ -146,13 +170,15 @@ export default function ProfilePage() {
             >
               <Link
                 to={`/place/${p.id}`}
-                className="flex items-center justify-between rounded-2xl border border-black/4 bg-white px-4 py-3 shadow-sm"
+                className="glass-panel group flex items-center justify-between rounded-[20px] px-4 py-3.5 transition-transform hover:-translate-y-0.5"
               >
                 <span className="min-w-0">
                   <span className="block truncate font-display">{p.name}</span>
                   <span className="block truncate text-xs text-ink-soft">{p.country}</span>
                 </span>
-                <span className="text-xs text-ink-soft">{p.stamp ? 'Collected' : 'Locked'}</span>
+                <span className={`rounded-full px-2.5 py-1 text-[9px] font-bold uppercase ${p.stamp ? 'bg-olive/12 text-olive' : 'bg-black/5 text-ink-soft'}`}>
+                  {p.stamp ? 'Collected' : 'Locked'}
+                </span>
               </Link>
             </li>
           ))}

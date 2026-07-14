@@ -9,6 +9,10 @@
   --color-teal: #0071e3;
   --color-mustard: #ff9f0a;
   --color-olive: #34c759;
+  --color-midnight: #171a23;
+  --color-sky: #68aef5;
+  --color-sand: #f2cf96;
+  --color-coral: #e97c5d;
   --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -19,11 +23,50 @@ html {
 
 body {
   color: var(--color-ink);
-  background-color: var(--color-paper);
+  background:
+    radial-gradient(circle at 8% 2%, rgb(104 174 245 / 0.11), transparent 28rem),
+    radial-gradient(circle at 92% 24%, rgb(242 207 150 / 0.13), transparent 25rem),
+    var(--color-paper);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   min-height: 100dvh;
+}
+
+::selection {
+  color: white;
+  background: var(--color-teal);
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-shell::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background-image: radial-gradient(rgb(29 29 31 / 0.06) 0.65px, transparent 0.65px);
+  background-size: 17px 17px;
+  mask-image: linear-gradient(to bottom, black, transparent 52%);
+  opacity: 0.28;
+}
+
+.glass-panel {
+  border: 1px solid rgb(255 255 255 / 0.68);
+  background: rgb(255 255 255 / 0.78);
+  box-shadow: 0 18px 50px rgb(24 32 52 / 0.08);
+  backdrop-filter: blur(24px) saturate(145%);
+}
+
+.eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .font-display {
@@ -36,12 +79,29 @@ body {
   min-height: 3rem;
   border-radius: 0.875rem;
   border: 1px solid color-mix(in srgb, var(--color-ink) 11%, transparent);
-  background: var(--color-paper-light);
+  background: rgb(255 255 255 / 0.86);
   padding: 0.625rem 1rem;
   font-size: 1rem;
   color: var(--color-ink);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.02);
+  box-shadow: 0 7px 24px rgb(24 32 52 / 0.05);
   transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+@keyframes float-gently {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--float-rotate, 0deg)); }
+  50% { transform: translate3d(0, -7px, 0) rotate(var(--float-rotate, 0deg)); }
+}
+
+.animate-float-gently {
+  animation: float-gently 5.5s ease-in-out infinite;
+}
+
+@keyframes route-dash {
+  to { stroke-dashoffset: -24; }
+}
+
+.animate-route-dash {
+  animation: route-dash 3s linear infinite;
 }
 .input::placeholder {
   color: var(--color-ink-soft);
@@ -108,7 +168,9 @@ body {
   }
   .animate-stamp-down,
   .animate-card-in,
-  .animate-globe-spin {
+  .animate-globe-spin,
+  .animate-float-gently,
+  .animate-route-dash {
     animation: none;
   }
 }

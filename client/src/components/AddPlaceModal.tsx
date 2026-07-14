@@ -9,7 +9,7 @@ import type { Place } from '../types';
 
 export function AddPlaceModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
-  const { position, error: geoError, loading: locating, request } = useGeo();
+  const { position } = useGeo();
   const [name, setName] = useState('');
   const [country, setCountry] = useState('');
   const [description, setDescription] = useState('');
@@ -82,7 +82,7 @@ export function AddPlaceModal({ open, onClose }: { open: boolean; onClose: () =>
           />
           <motion.div
             key="sheet"
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-[32px] bg-paper-light px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] shadow-[0_-18px_50px_rgba(0,0,0,0.12)]"
+            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[91vh] w-full max-w-md overflow-y-auto rounded-t-[34px] bg-[linear-gradient(160deg,#ffffff_0%,#f7f9fc_54%,#fff8eb_100%)] px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] shadow-[0_-24px_70px_rgba(18,23,38,0.18)]"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -91,7 +91,10 @@ export function AddPlaceModal({ open, onClose }: { open: boolean; onClose: () =>
           >
             <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-ink/15" />
             <div className="mb-4 flex items-center justify-between">
-              <h1 className="font-display text-2xl">Add a place</h1>
+              <div>
+                <p className="eyebrow text-teal">Create your own</p>
+                <h1 className="mt-1 font-display text-[26px]">Add a place</h1>
+              </div>
               <button
                 type="button"
                 onClick={close}
@@ -105,20 +108,23 @@ export function AddPlaceModal({ open, onClose }: { open: boolean; onClose: () =>
             {/* live preview: hashed on the name pre-save, so the final stamp's
                 palette (hashed on the real id) may differ — that's fine */}
             <motion.div
-              className="mx-auto mb-6 w-32 rotate-2"
-              initial={{ opacity: 0, scale: 0.85, rotate: -6 }}
-              animate={{ opacity: 1, scale: 1, rotate: 2 }}
+              className="relative mx-auto mb-6 flex min-h-[178px] w-full items-center justify-center overflow-hidden rounded-[26px] bg-[linear-gradient(135deg,#dbeeff,#fff1d6)]"
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ type: 'spring', stiffness: 260, damping: 20 }}
             >
-              <StampSVG
-                subject={{
-                  id: name.trim() || 'preview-stamp',
-                  name: name.trim() || 'Your place',
-                  country: country.trim() || 'Somewhere',
-                }}
-                locked={false}
-                className="w-full drop-shadow-[0_4px_9px_rgba(0,0,0,0.16)]"
-              />
+              <div className="pointer-events-none absolute -right-10 -bottom-12 h-36 w-36 rounded-full border-[24px] border-white/30" />
+              <div className="w-32 rotate-2">
+                <StampSVG
+                  subject={{
+                    id: name.trim() || 'preview-stamp',
+                    name: name.trim() || 'Your place',
+                    country: country.trim() || 'Somewhere',
+                  }}
+                  locked={false}
+                  className="w-full drop-shadow-[0_12px_20px_rgba(24,32,52,0.2)]"
+                />
+              </div>
             </motion.div>
 
             <form onSubmit={submit} className="flex flex-col gap-3">
@@ -149,25 +155,34 @@ export function AddPlaceModal({ open, onClose }: { open: boolean; onClose: () =>
                 onChange={(e) => setDescription(e.target.value)}
               />
 
-              <div className="rounded-xl border border-ink/10 bg-paper-light p-3">
+              <div className="rounded-[20px] border border-white/80 bg-white/70 p-3 shadow-sm backdrop-blur-xl">
                 {!manual ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={request}
-                      disabled={locating}
-                      data-testid="use-my-location"
+                  <div
+                    className={`flex items-center gap-3 rounded-2xl px-3.5 py-3 ${
+                      position ? 'bg-olive/10 text-ink' : 'bg-black/4 text-ink-soft'
+                    }`}
+                    data-testid="use-my-location"
+                  >
+                    <span
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                        position ? 'bg-olive text-white' : 'bg-black/8'
+                      }`}
                     >
-                      {locating
-                        ? 'Locating…'
-                        : position
-                          ? `Using your location (${position.lat.toFixed(4)}, ${position.lng.toFixed(4)})`
-                          : 'Use my current location'}
-                    </Button>
-                    {geoError && <p className="mt-2 text-sm text-terracotta">{geoError}</p>}
-                  </>
+                      <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-current" aria-hidden>
+                        <path d="M12 2a7 7 0 0 1 7 7c0 4.7-5.3 11-6.4 12.2a.8.8 0 0 1-1.2 0C10.3 20 5 13.7 5 9a7 7 0 0 1 7-7Zm0 4a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
+                      </svg>
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold">
+                        {position ? 'Using your saved location' : 'Location is off for this session'}
+                      </span>
+                      <span className="block truncate text-xs opacity-70">
+                        {position
+                          ? `${position.lat.toFixed(4)}, ${position.lng.toFixed(4)}`
+                          : 'Enter coordinates to place this stamp'}
+                      </span>
+                    </span>
+                  </div>
                 ) : (
                   <div className="flex gap-2">
                     <input
@@ -193,7 +208,11 @@ export function AddPlaceModal({ open, onClose }: { open: boolean; onClose: () =>
                   className="mt-2 text-xs text-ink-soft underline underline-offset-2"
                   onClick={() => setManual(!manual)}
                 >
-                  {manual ? 'Use my current location instead' : 'Enter coordinates manually'}
+                  {manual
+                    ? position
+                      ? 'Use my saved location instead'
+                      : 'Hide coordinate fields'
+                    : 'Enter coordinates manually'}
                 </button>
               </div>
 

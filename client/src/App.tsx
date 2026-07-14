@@ -8,6 +8,7 @@ import { TopBar } from './components/TopBar';
 import { AddFab } from './components/AddFab';
 import { AddPlaceModal } from './components/AddPlaceModal';
 import { GlobeIntro } from './components/GlobeIntro';
+import { LocationOnboarding } from './components/LocationOnboarding';
 import AuthPage from './pages/AuthPage';
 import PassportPage from './pages/PassportPage';
 import CategoryExplorePage from './pages/CategoryExplorePage';
@@ -37,8 +38,9 @@ function Shell() {
   // the passport home page below.
   if (!user) return <Navigate to="/auth" replace />;
   return (
-    <div className="mx-auto min-h-dvh max-w-md pt-16 pb-28">
+    <div className="app-shell mx-auto min-h-dvh max-w-md pt-[82px] pb-28">
       {showIntro && <GlobeIntro onDone={() => setShowIntro(false)} />}
+      <LocationOnboarding />
       <TopBar />
       <Outlet />
       <AddFab onClick={() => setAddOpen(true)} />
